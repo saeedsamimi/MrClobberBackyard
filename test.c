@@ -3,7 +3,7 @@
 #include <allegro5/allegro_ttf.h>
 #include <stdio.h>
 
-int main1() {
+int testFontAddon() {
   // Initialize Allegro
   if (!al_init()) {
     fprintf(stderr, "Failed to initialize Allegro!\n");

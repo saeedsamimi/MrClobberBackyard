@@ -1,3 +1,4 @@
+#pragma once
 #include "constants.h"
 #include "flagManager.h"
 #include <math.h>
@@ -12,22 +13,23 @@ void __initColors() {
 	GREEN = al_map_rgb_f(0, 1, 0);
 	RED = al_map_rgb_f(1, 0, 0);
 	MAGENTA = al_map_rgb_f(1, 0, 1);
-	DOG_COLOR = al_map_rgb(160, 82, 45);
-	MOUSE_COLOR = al_map_rgb(0, 0, 139);
+	DOG_COLOR = al_map_rgb(93,38,137);
+	MOUSE_COLOR = al_map_rgb(0, 128, 129);
 	COLOR1 = al_map_rgb(212, 0, 0);
 	COLOR2 = al_map_rgb(225, 44, 44);
 	COLOR3 = al_map_rgb(225, 165, 0);
 	COLOR4 = al_map_rgb(255, 223, 0);
+	WHITE = al_map_rgb(255, 255, 255);
+	BLACK = al_map_rgb(0, 0, 0);
 }
 
-float __generateRandomMap() {
+void __generateRandomMap() {
 	// ---- start -- reset board map and modifing two iterators
 	int i, j;
 	for (i = 0; i < BOARD_SIZE; i++) for (j = 0; j < BOARD_SIZE; j++) map[i][j] = 0;
 	// ---- prereserve -- the location of all cats
 	map[BOARD_SIZE / 2][BOARD_SIZE / 2] = FLAG_CAT;
-	// ---- init -- reset to zero variance and change the random seed
-	float variance = 0;
+	// ---- init -- change the random seed
 	srand(time(NULL));
 	// ---- init -- dogs
 	for (i = 0; i < DOG_COUNT; i++) {
@@ -40,9 +42,8 @@ float __generateRandomMap() {
 				break;
 			}
 		} while (1);
-		variance += dogs[i].x, 2 + dogs[i].y;
 	}
-	// ---- init -- cats
+	// ---- init -- cats and place all of them in a one place
 	{
 		CAT t;
 		t.attackPoint = 2;
@@ -58,26 +59,26 @@ float __generateRandomMap() {
 		cats[3].color = MAGENTA;
 	}
 	// ---- init -- mouses
-	for (i = 0; i < MOUSE_COUNT; i++) {
+	int k = 0; // first i split the board to 15 peaces and place mouses randomfully
+	for (i = 0; i < BOARD_SIZE; i+=3) for (j = 0; j < BOARD_SIZE; j+=5,k++) 
 		do {
-			mouses[i].x = rand() % BOARD_SIZE;
-			mouses[i].y = rand() % BOARD_SIZE;
-			if (!map[mouses[i].y][mouses[i].x]) {
-				map[mouses[i].y][mouses[i].x] = FLAG_MOUSE;
+			mouses[k].x = i + rand() % 3;
+			mouses[k].y = j + rand() % 5;
+			if (!map[mouses[k].y][mouses[k].x]) {
+				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
 				break;
 			}
 		} while (1);
-		variance += mouses[i].x + mouses[i].y;
-	}
-	// ---- solve -- variance
-	{
-		float ave = variance / (DOG_COUNT + MOUSE_COUNT) / 2;
-		for (i = 0; i < 4; i++)
-			variance += fabs((dogs[i].x - ave) * (dogs[i].y - ave));
-		for (i = 0; i < MOUSE_COUNT; i++)
-			variance += fabs((mouses[i].x - ave) * (mouses[i].y - ave));
-	}
-	return variance / (DOG_COUNT + MOUSE_COUNT);
+	// place another unplaced mouses
+	for (; k < MOUSE_COUNT;k++) 
+		do {
+			mouses[k].x = rand() % BOARD_SIZE;
+			mouses[k].y = rand() % BOARD_SIZE;
+			if (!map[mouses[k].y][mouses[k].x]) {
+				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
+				break;
+			}
+		} while (1);
 }
 
 char __noWall(int x,int y) {
@@ -121,7 +122,6 @@ void __generateRandomWalls() {
 void setMap() {
 	float variance;
 	__initColors();
-	do variance = __generateRandomMap();
-	while (variance < 25);
+	__generateRandomMap();
 	__generateRandomWalls();
 }
