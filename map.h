@@ -52,7 +52,8 @@ void __generateRandomMap() {
 		t.state = 'a';
 		t.x = BOARD_SIZE / 2;
 		t.y = BOARD_SIZE / 2;
-		for (i = 0; i < CAT_COUNT; i++) t.index = i + 1, cats[i] = t;
+		// set overlaping z-index for all cats
+		for (i = 0; i < CAT_COUNT; i++) t.index = i+1, cats[i] = t;
 		cats[0].color = BLUE;
 		cats[1].color = GREEN;
 		cats[2].color = RED;
