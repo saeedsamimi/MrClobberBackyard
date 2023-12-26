@@ -121,7 +121,6 @@ void __generateRandomWalls() {
 }
 
 void setMap() {
-	float variance;
 	__initColors();
 	__generateRandomMap();
 	__generateRandomWalls();

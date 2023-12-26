@@ -6,16 +6,23 @@
 #include "allegro5/allegro_image.h"
 #include "map.h"
 #include "test.h"
+#include "logics/logics.h"
 #include <limits.h>
 
 void printEmptyBoard();       // print initialized map with walls but no player placed at squares
 char initializeDisplay();     // allegro display initialization and handling errors
 void printPlayers();          // print all of the players such as cat, dog, mouse, and more(except walls)
+void clearCats();             // to clear all cats locatio on board
+void printCats();             // for printing cats
+void clearDogs();             // clear previous dogs
+void printDogs();             // print new dogs
+void clearMouses();           // clear previous mouses
+void printMouses();           // print new mouses
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
-int currentPlayer = 2;        // as like as it's name stores the current player index
+int currentPlayer = 0;        // as like as it's name stores the current player index
 int currentRound = 1;         // as like as it's name it stroes the current round information
 ALLEGRO_DISPLAY* display;     // as like as it's name stores the information about allegro display
 ALLEGRO_BITMAP *dogIcon, *mouseIcon;          // dog and mouse icon bitmap
@@ -58,6 +65,8 @@ int main() {
 	indicatePlayer();
 	printScoreBoard();
 
+	al_flip_display(); //refresh view
+
 	al_install_keyboard();
 	ALLEGRO_EVENT_QUEUE* ev_queue = al_create_event_queue();
 	al_register_event_source(ev_queue, al_get_display_event_source(display));
@@ -71,23 +80,58 @@ int main() {
 			switch (event.keyboard.keycode) {
 			case ALLEGRO_KEY_A:
 			case ALLEGRO_KEY_LEFT:
-				moveCurrentPlayerOnBoard(6, 7);
-				indicatePlayer();
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)){
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
+					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+				}
 				__testMap();
 				break;
 			case ALLEGRO_KEY_D:
 			case ALLEGRO_KEY_RIGHT:
-				moveCurrentPlayerOnBoard(7, 7);
-				indicatePlayer();
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
+					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+				}
 				__testMap();
 				break;
+			case ALLEGRO_KEY_W:
+			case ALLEGRO_KEY_UP:
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
+					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+				}
+				__testMap();
+				break;
+			case ALLEGRO_KEY_S:
+			case ALLEGRO_KEY_DOWN:
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
+					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+				}
+				__testMap();
+				break;
+			case ALLEGRO_KEY_0:
+				clearDogs();
+				break;
+			case ALLEGRO_KEY_1:
+				printDogs();
+				break;
+			case ALLEGRO_KEY_2:
+				printMouses();
+				break;
+			case ALLEGRO_KEY_3:
+				clearMouses();
+				break;
 			}
+			indicatePlayer();
+			al_flip_display();
 		}
 	}
 	al_destroy_display(display);
 	al_destroy_bitmap(dogIcon);
 	return 0;
 }
+
 // -- init -- allegro display settings
 char initializeDisplay() {
 	if (!al_init()) return INIT_DISPLAY_ALLEGRO_ERR;
@@ -111,12 +155,12 @@ void printScoreBoard() {
 	const int x = k * BOARD_SIZE; //the basic left offset
 	int h = al_get_font_line_height(font)*2;  //get the height of a line of text then multiply 2
 	// draw the two important rectangles on the top of score board
-	al_draw_filled_rectangle(x, 0, x + SCORE_BOARD_WIDTH / 2, h, COLOR3, 2);
+	al_draw_filled_rectangle(x, 0, x + SCORE_BOARD_WIDTH / 2, h, COLOR3);
 	al_draw_filled_rectangle(x + SCORE_BOARD_WIDTH / 2, 0, x + SCORE_BOARD_WIDTH, h, COLOR3);
 	// generate the player turn and game round caption by Sprintf function and then draw it
 	char playerTurnText[15], gameRoundText[9];
-	sprintf_s(playerTurnText, 15, "Player %d turn", currentPlayer + 1);
-	sprintf_s(gameRoundText, 8, "Round %d", currentRound);
+	sprintf(playerTurnText, "Player %d turn", currentPlayer + 1);
+	sprintf(gameRoundText, "Round %d", currentRound);
 	al_draw_text(font, BLACK, x + SCORE_BOARD_WIDTH / 4, h/4, ALLEGRO_ALIGN_CENTER, playerTurnText);
 	al_draw_text(font, BLACK, x + SCORE_BOARD_WIDTH * 3 / 4, h / 4, ALLEGRO_ALIGN_CENTER, gameRoundText);
 	// a static constant object which is stores the table titles
@@ -136,27 +180,26 @@ void printScoreBoard() {
 	char t[3];  // use a temp char array for saving the strings of items
 	for (int i = 0; i < CAT_COUNT; i++) {
 		for (int j = 0; j < CAT_COUNT; j++) {
-			al_draw_filled_rectangle(x + i * w, y + j * h, x + (i + 1) * w, y + (j + 1) * h, COLOR2, 2);
+			al_draw_filled_rectangle(x + i * w, y + j * h, x + (i + 1) * w, y + (j + 1) * h, COLOR2);
 			// use switch case for print the current column data
 			switch (i) {
 			case 0:
-				sprintf_s(t, 3, "#%d", j + 1);
+				sprintf(t, "#%d", j + 1);
 				break;
 			case 1:
-				sprintf_s(t, 3, "%d", cats[j].defencePoint);
+				sprintf(t, "%d", cats[j].defencePoint);
 				break;
 			case 2:
-				sprintf_s(t, 3, "%d", cats[j].attackPoint);
+				sprintf(t, "%d", cats[j].attackPoint);
 				break;
 			case 3:
-				sprintf_s(t, 3, "%d", cats[j].mousePoint);
+				sprintf(t, "%d", cats[j].mousePoint);
 				break;
 			}
 			al_draw_text(font,WHITE, x + (i + .5) * w, y + (j + .5) * h - 15, 
 				ALLEGRO_ALIGN_CENTER, t);
 		}
 	}
-	al_flip_display();
 }
 
 // print initialized map with walls but no player placed at squares
@@ -184,7 +227,7 @@ void printEmptyBoard() {
 }
 
 // draw a photo in given size this function can not helpful everywhere
-inline void __drawScaledPhoto(ALLEGRO_BITMAP* img, int x, int y, int w) {
+void __drawScaledPhoto(ALLEGRO_BITMAP* img, int x, int y, int w) {
 	al_draw_scaled_bitmap(img, 0, 0,
 		al_get_bitmap_width(img), al_get_bitmap_height(img), x, y, w, w, 0);
 }
@@ -192,30 +235,15 @@ inline void __drawScaledPhoto(ALLEGRO_BITMAP* img, int x, int y, int w) {
 // print initial players only once
 // this function prints all types of models
 void printPlayers() {
-	float x, y;
-	int i;
 	// ------ print ---- cat
-	x = k * (cats[0].x + .25);
-	y = k * (cats[0].y + .25);
-	for (i = 0; i < CAT_COUNT; i++) 
+	float x = k * (cats[0].x + .25);
+	float y = k * (cats[0].y + .25);
+	for (int i = 0; i < CAT_COUNT; i++) 
 		al_draw_filled_circle(x + ((i % 2) ? k / 2 : 0),
 			y + ((i > 1) ? k / 2 : 0), 0.2 * SQUARE_SIZE, cats[i].color);
 	// ------ endPrint-- cat
-	// ------ print ---- dogs
-	for (i = 0; i < DOG_COUNT; i++) {
-		x = k * dogs[i].x + MARGIN;
-		y = k * dogs[i].y + MARGIN;
-		__drawScaledPhoto(dogIcon, x, y, SQUARE_SIZE);
-	}
-	// ------ endPrint - dogs
-	// ------ print ---- mouses
-	for (i = 0; i < MOUSE_COUNT; i++) {
-		x = k * mouses[i].x + MARGIN;
-		y = k * mouses[i].y + MARGIN;
-		__drawScaledPhoto(mouseIcon, x, y, SQUARE_SIZE);
-	}
-	// ------ endPrint - mouses
-	al_flip_display();
+	printDogs();
+	printMouses();
 }
 
 // this function is show that where is the current player's cat 
@@ -234,56 +262,109 @@ void indicatePlayer() {
 		al_draw_circle(x + ((currentCat.index % 2) ? 0 : k / 2),
 			y + ((currentCat.index > 2) ? k / 2 : 0), 0.15 * SQUARE_SIZE, BLACK, 4);
 	}
-	// refresh display view
-	al_flip_display();
+}
+
+// clear previous state of cats
+void clearCats() {
+	for (int i = 0; i < CAT_COUNT; i++) {
+		float x = cats[i].x * k + MARGIN;
+		float y = cats[i].y * k + MARGIN;
+		al_draw_filled_rectangle(x, y, x + SQUARE_SIZE, y + SQUARE_SIZE, COLOR4);
+	}
+}
+
+// print new state of cats
+void printCats() {
+	float x, y;
+	for (int i = 0; i < CAT_COUNT; i++) {
+		if (cats[i].index) {
+			x = cats[i].x * k + ((cats[i].index % 2) ? k / 4 : 3 * k / 4); // solve x
+			y = cats[i].y * k + ((cats[i].index <= 2) ? k / 4 : 3 * k / 4); // solve y
+			al_draw_filled_circle(x, y, SQUARE_SIZE * .2, cats[i].color);
+		}
+		else {
+			x = (cats[i].x + .5) * k;
+			y = (cats[i].y + .5) * k;
+			al_draw_filled_circle(x, y, SQUARE_SIZE * .4, cats[i].color);
+		}
+	}
 }
 
 // this complicated function allows you to move cats if that can move there
-void moveCurrentPlayerOnBoard(int newX, int newY) {
-	// -- solve -- the x and y of current square
-	int x = cats[currentPlayer].x * k + MARGIN;
-	int y = cats[currentPlayer].y * k + MARGIN;
-	al_draw_filled_rectangle(x, y, x + SQUARE_SIZE, y + SQUARE_SIZE, COLOR4);
-	// -- end solve -- and finaly clear to default color by rectangle
-	// -- adjust -- adjust previous items and reset to clear and change indexes 
-	if (cats[currentPlayer].index)
-		for (int i = 0; i < CAT_COUNT; i++) {
-			if (i == currentPlayer)continue; // not for current Player
-			// if current player overlaped the i th player , 
-			// the i th player's index if it is more than currPlayer would be decreased
-			if (cats[currentPlayer].x == cats[i].x &&
-				cats[currentPlayer].y == cats[i].y &&
-				cats[i].index > cats[currentPlayer].index) cats[i].index--;
-			x = cats[i].x * k + ((cats[i].index % 2) ? k / 4 : 3 * k / 4); // solve x
-			y = cats[i].y * k + ((cats[i].index <= 2) ? k / 4 : 3 * k / 4); // solve y
-			al_draw_filled_circle(x, y, SQUARE_SIZE * .2, cats[i].color); // draw small quarter circle
+void moveCurrentPlayerOnBoard(int newX, int newY){
+	clearCats();
+	// reset old house by counting the previous items count
+	int countOvers = 0;
+	int indexes[CAT_COUNT];
+	for (int i = 0; i < CAT_COUNT; i++)
+		if (cats[i].x == cats[currentPlayer].x && cats[i].y == cats[currentPlayer].y)
+			indexes[countOvers++] = i;
+	if (countOvers > 2) {
+		for (int i = 0,k=0; i < countOvers; i++) {
+			if (indexes[i] == currentPlayer)continue;
+			cats[indexes[i]].index = ++k;
 		}
-	else removeFlag(&map[cats[currentPlayer].y][cats[currentPlayer].x], FLAG_CAT);
-	// -- end adjust -- if the previous item is not overlaped the big circle would be printed
-	// -- change -- location and index
+	} else {
+		for (int i = 0; i < countOvers; i++)
+			cats[indexes[i]].index = 0;
+	}
+	if (countOvers == 1) // do this when there is no cat after move the cat
+		removeFlag(&map[cats[currentPlayer].y][cats[currentPlayer].x], FLAG_CAT);
+	// reset current player index if not reseted
+	cats[currentPlayer].index = 0;
+	// check new house before travel to it
+	countOvers = 0;
+	for (int i = 0; i < CAT_COUNT; i++)
+		if (cats[i].x == newX && cats[i].y == newY)
+			indexes[countOvers++] = i;
+	if (countOvers == 1) cats[indexes[0]].index = 1;
+	cats[currentPlayer].index = countOvers ? countOvers + 1 : 0; // count overs is not zero let c+1 else zero
+	if (!countOvers) 
+		addFlag(&map[newY][newX], FLAG_CAT); //set this house khown as cat house
 	cats[currentPlayer].x = newX;
 	cats[currentPlayer].y = newY;
-	cats[currentPlayer].index = 0;
-	// -- end change --
-	// -- if new box contains cat -- adjust the cat index
-	if (hasFlag(map[newY][newX], FLAG_CAT)) {
-		int k, i;
-		for (i = 0, k = 0; i < CAT_COUNT; i++)
-			if (cats[i].x == newX && cats[i].y == newY) k++;
-		cats[currentPlayer].index = k;
+	printCats();
+}
+
+void clearDogs() {
+	// ------ clear ---- dogs
+	for (int i = 0; i < DOG_COUNT; i++) {
+		float x = dogs[i].x * k + MARGIN;
+		float y = dogs[i].y * k + MARGIN;
+		al_draw_filled_rectangle(x, y, x + SQUARE_SIZE, y + SQUARE_SIZE, COLOR4);
 	}
-	// -- endif --
-	else addFlag(&map[newY][newX], FLAG_CAT); // -- elif -- add this cat to a solid square
-	// solve the x and y for the pivot
-	x = cats[currentPlayer].x * k + MARGIN; 
-	y = cats[currentPlayer].y * k + MARGIN;
-	if (cats[currentPlayer].index) {
-		// very complicated calculation for the overlapping cats
-		x = cats[currentPlayer].x * k + ((cats[currentPlayer].index % 2) ? k / 4 : 3 * k / 4);
-		y = cats[currentPlayer].y * k + ((cats[currentPlayer].index < 3) ? k / 4 : 3 * k / 4);
-		// draw mini circle
-		al_draw_filled_circle(x, y, .2 * SQUARE_SIZE, cats[currentPlayer].color);
-	} // elif draw the big circle...
-	else al_draw_filled_circle(x + SQUARE_SIZE / 2, y + SQUARE_SIZE / 2, .4 * SQUARE_SIZE, cats[currentPlayer].color);
-	al_flip_display(); // refresh display
+	// ------ end clear --- dogs
+}
+
+// print new dogs location
+void printDogs() {
+	// ------ print ---- dogs
+	for (int i = 0; i < DOG_COUNT; i++) {
+		float x = k * dogs[i].x + MARGIN;
+		float y = k * dogs[i].y + MARGIN;
+		__drawScaledPhoto(dogIcon, x, y, SQUARE_SIZE);
+	}
+	// ------ endPrint - dogs
+}
+
+// clear previous mouses
+void clearMouses() {
+	// ------ clear ---- mouses
+	for (int i = 0; i < MOUSE_COUNT; i++) {
+		float x = mouses[i].x * k + MARGIN;
+		float y = mouses[i].y * k + MARGIN;
+		al_draw_filled_rectangle(x, y, x + SQUARE_SIZE, y + SQUARE_SIZE, COLOR4);
+	}
+	// ------ end clear ---- mouses
+}
+
+// print new mouses
+void printMouses(){
+	// ------ print ---- mouses
+	for (int i = 0; i < MOUSE_COUNT; i++) {
+		float x = k * mouses[i].x + MARGIN;
+		float y = k * mouses[i].y + MARGIN;
+		__drawScaledPhoto(mouseIcon, x, y, SQUARE_SIZE);
+	}
+	// ------ endPrint - mouses
 }
