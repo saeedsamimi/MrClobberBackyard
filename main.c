@@ -257,7 +257,6 @@ void printPlayers() {
 	// ------ endPrint-- cat
 	printDogs();
 	printMouses();
-	al_flip_display();
 }
 
 // this function is show that where is the current player's cat 
@@ -410,9 +409,13 @@ void printChocolatesAndFishes() {
 void nextPlayer() {
 	if (currentPlayer == CAT_COUNT - 1) {
 		clearDogs();
+		clearMouses();
 		dogRandomMove();
+		mouseRandomMove();
+		printMouses();
 		printDogs();
 	}
 	currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 	indicatePlayer();
+	
 }

@@ -42,6 +42,7 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
  
 typedef struct {
 	unsigned short int x, y;
+	unsigned short points;
 } MOUSE;
 typedef struct {
 	char state, index;
@@ -52,6 +53,7 @@ typedef struct {
 typedef struct {
 	unsigned short int x, y;
 	unsigned short int speed;
+	unsigned short int attackPoint, defencePoint;
 	char model;
 } DOG;
 

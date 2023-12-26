@@ -82,61 +82,100 @@ int canMove(int x, int y, enum MOVEMENT move) {
   return 0;
 }
 
+
 void dogRandomMove() {
-  int direction_number;
-  enum MOVEMENT movement;
-  int new_x;
-  int new_y;
-  // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
-  for (int dog_index = 0; dog_index < DOG_COUNT; dog_index++) {
-    int x = dogs[dog_index].x;
-    int y = dogs[dog_index].y;
+    int direction_number;
+    enum MOVEMENT movement;
+    int new_x;
+    int new_y;
+    // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
+    for(int dog_index = 0; dog_index< DOG_COUNT;dog_index++) {
+        int x = dogs[dog_index].x;
+        int y = dogs[dog_index].y;
+        
+        for(int i=0;i<5;i++)
+        {
+            new_x = x;
+            new_y = y;
+            direction_number = (rand() % (4)) + 1;
+            switch (direction_number)
+            {
+            case 1:
+                //UP
+                movement = UP;
+                new_y = y-1;
+                break;
+            case 2:
+                //RIGHT
+                movement = RIGHT;
+                new_x = x+1;
+                break;
+            case 3:
+                //DOWN
+                movement = DOWN;
+                new_y = y+1;
+                break;
+            case 4:
+                //LEFT
+                movement = LEFT;
+                new_x = x-1;
+                break;
+            }
+            if(canMove(x,y,movement)) break;
+        }        
+        addFlag(&map[new_y][new_x],FLAG_DOG);
+        removeFlag(&map[y][x],FLAG_DOG);
 
-    for (int i = 0; i < 5; i++) // max attempts: 3 times
-    {
-      new_x = x;
-      new_y = y;
-      direction_number = (rand() % (4)) + 1;
-      switch (direction_number)
-      {
-      case 1:
-        //UP
-        movement = UP;
-        new_y = y - 1;
-        break;
-      case 2:
-        //RIGHT
-        movement = RIGHT;
-        new_x = x + 1;
-        break;
-      case 3:
-        //DOWN
-        movement = DOWN;
-        new_y = y + 1;
-        break;
-      case 4:
-        //LEFT
-        movement = LEFT;
-        new_x = x - 1;
-        break;
-      }
-      if (canMove(x, y, movement)) break;
+        dogs[dog_index].x = new_x;
+        dogs[dog_index].y = new_y;
     }
-
-    printf("FINISHED!\n");
-    addFlag(&map[new_y][new_x], FLAG_DOG);
-    removeFlag(&map[y][x], FLAG_DOG);
-
-    dogs[dog_index].x = new_x;
-    dogs[dog_index].y = new_y;
-  }
 }
 
-int freeMovementCount(int x,int y,enum MOVEMENT movement[]) {
-  int counter = 0;
-  if (canMove(x, y, UP)) movement[counter++] = UP;
-  if (canMove(x, y, RIGHT)) movement[counter++] = RIGHT;
-  if (canMove(x, y, DOWN)) movement[counter++] = DOWN;
-  if (canMove(x, y, LEFT)) movement[counter++] = RIGHT;
-  return counter;
+void mouseRandomMove() {
+    int direction_number;
+    enum MOVEMENT movement;
+    int new_x;
+    int new_y;
+    // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
+    for(int mouse_index = 0; mouse_index< MOUSE_COUNT;mouse_index++) {
+        int x = mouses[mouse_index].x;
+        int y = mouses[mouse_index].y;
+        
+        for(int i=0;i<5;i++)
+        {
+            new_x = x;
+            new_y = y;
+            direction_number = (rand() % (4)) + 1;
+            switch (direction_number)
+            {
+            case 1:
+                //UP
+                movement = UP;
+                new_y = y-1;
+                break;
+            case 2:
+                //RIGHT
+                movement = RIGHT;
+                new_x = x+1;
+                break;
+            case 3:
+                //DOWN
+                movement = DOWN;
+                new_y = y+1;
+                break;
+            case 4:
+                //LEFT
+                movement = LEFT;
+                new_x = x-1;
+                break;
+            }
+            if(canMove(x,y,movement)) break;
+        }
+        
+        addFlag(&map[new_y][new_x],FLAG_MOUSE);
+        removeFlag(&map[y][x],FLAG_MOUSE);
+
+        mouses[mouse_index].x = new_x;
+        mouses[mouse_index].y = new_y;
+    }
 }
