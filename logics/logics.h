@@ -92,40 +92,41 @@ void dogRandomMove() {
     for(int dog_index = 0; dog_index< DOG_COUNT;dog_index++) {
         int x = dogs[dog_index].x;
         int y = dogs[dog_index].y;
-        
-        for(int i=0;i<5;i++)
-        {
-            new_x = x;
-            new_y = y;
-            direction_number = (rand() % (4)) + 1;
-            switch (direction_number)
-            {
-            case 1:
-                //UP
-                movement = UP;
-                new_y = y-1;
-                break;
-            case 2:
-                //RIGHT
-                movement = RIGHT;
-                new_x = x+1;
-                break;
-            case 3:
-                //DOWN
-                movement = DOWN;
-                new_y = y+1;
-                break;
-            case 4:
-                //LEFT
-                movement = LEFT;
-                new_x = x-1;
-                break;
-            }
-            if(canMove(x,y,movement)) break;
-        }        
-        addFlag(&map[new_y][new_x],FLAG_DOG);
-        removeFlag(&map[y][x],FLAG_DOG);
-
+        for(int speed =0;speed<dogs[dog_index].speed;speed++) {           
+          for(int i=0;i<5;i++)
+          {
+              new_x = x;
+              new_y = y;
+              direction_number = (rand() % (4)) + 1;
+              switch (direction_number)
+              {
+              case 1:
+                  //UP
+                  movement = UP;
+                  new_y = y-1;
+                  break;
+              case 2:
+                  //RIGHT
+                  movement = RIGHT;
+                  new_x = x+1;
+                  break;
+              case 3:
+                  //DOWN
+                  movement = DOWN;
+                  new_y = y+1;
+                  break;
+              case 4:
+                  //LEFT
+                  movement = LEFT;
+                  new_x = x-1;
+                  break;
+              }
+              if(canMove(x,y,movement)) break;
+          }        
+          addFlag(&map[new_y][new_x],FLAG_DOG);
+          removeFlag(&map[y][x],FLAG_DOG);
+          al_rest(0.3);
+        }
         dogs[dog_index].x = new_x;
         dogs[dog_index].y = new_y;
     }
