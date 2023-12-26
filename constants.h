@@ -1,7 +1,7 @@
 #pragma once
 #include <allegro5/allegro_color.h>
 #define BOARD_SIZE 15
-#define SQUARE_SIZE 50
+#define SQUARE_SIZE 60
 #define MARGIN 3
 #define SCORE_BOARD_WIDTH 500
 
@@ -30,7 +30,16 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
 #define FLAG_LWALL 1<<4
 #define FLAG_UWALL 1<<5
 #define FLAG_DWALL 1<<6
+#define FLAG_CHOCO 1<<7
+#define FLAG_FISH  1<<8
 
+#define MOUSE_COUNT 18
+#define DOG_COUNT 4
+#define CAT_COUNT 4
+#define WALL_COUNT 18
+#define CHOCO_COUNT 8
+#define FISH_COUNT 10
+ 
 typedef struct {
 	unsigned short int x, y;
 } MOUSE;
@@ -43,6 +52,7 @@ typedef struct {
 typedef struct {
 	unsigned short int x, y;
 	unsigned short int speed;
+	char model;
 } DOG;
 
 enum MOVEMENT {
@@ -60,10 +70,5 @@ enum CHARACTER_TYPE {
 	DOG_CHARACTER,
 	CAT_CHARACTER,
 	MOUSE_CHARACTER,
-	NONE
+	NO_CHARACTER
 };
-
-#define MOUSE_COUNT 18
-#define DOG_COUNT 4
-#define CAT_COUNT 4
-#define WALL_COUNT 18

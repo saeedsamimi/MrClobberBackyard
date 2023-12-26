@@ -18,14 +18,18 @@ void clearDogs();             // clear previous dogs
 void printDogs();             // print new dogs
 void clearMouses();           // clear previous mouses
 void printMouses();           // print new mouses
+void printChocolatesAndFishes(); // print all cholates and fishes finally
+void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
+void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
+void freeCache();             // free cache such as pictures and displays and fonts
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
 int currentPlayer = 0;        // as like as it's name stores the current player index
 int currentRound = 1;         // as like as it's name it stroes the current round information
 ALLEGRO_DISPLAY* display;     // as like as it's name stores the information about allegro display
-ALLEGRO_BITMAP *dogIcon, *mouseIcon;          // dog and mouse icon bitmap
+ALLEGRO_BITMAP* dogIcon[CAT_COUNT], * mouseIcon, * chocoIcon, * fishIcon;          // dog and mouse icon bitmap
 const short int k = SQUARE_SIZE + 2 * MARGIN; // a helpfull number to save the size of each box
 
 int main() {
@@ -65,7 +69,7 @@ int main() {
 	indicatePlayer();
 	printScoreBoard();
 
-	al_flip_display(); //refresh view
+	al_flip_display(); // refresh the view
 
 	al_install_keyboard();
 	ALLEGRO_EVENT_QUEUE* ev_queue = al_create_event_queue();
@@ -73,63 +77,53 @@ int main() {
 	al_register_event_source(ev_queue, al_get_keyboard_event_source());
 	ALLEGRO_EVENT event;
 	// only for test this section , this is going to be changed as soon as possible
-	while (1) {
-		al_wait_for_event(ev_queue, &event);
-		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) break;
-		if (event.type == ALLEGRO_EVENT_KEY_UP) {
-			switch (event.keyboard.keycode) {
-			case ALLEGRO_KEY_A:
-			case ALLEGRO_KEY_LEFT:
-				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)){
-					moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
-					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
-				}
-				__testMap();
-				break;
-			case ALLEGRO_KEY_D:
-			case ALLEGRO_KEY_RIGHT:
-				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
-					moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
-					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
-				}
-				__testMap();
-				break;
-			case ALLEGRO_KEY_W:
-			case ALLEGRO_KEY_UP:
-				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
-					moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
-					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
-				}
-				__testMap();
-				break;
-			case ALLEGRO_KEY_S:
-			case ALLEGRO_KEY_DOWN:
-				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
-					moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
-					currentPlayer = (currentPlayer + 1) % CAT_COUNT;
-				}
-				__testMap();
-				break;
-			case ALLEGRO_KEY_0:
-				clearDogs();
-				break;
-			case ALLEGRO_KEY_1:
-				printDogs();
-				break;
-			case ALLEGRO_KEY_2:
-				printMouses();
-				break;
-			case ALLEGRO_KEY_3:
-				clearMouses();
-				break;
+	gameLoop(ev_queue, &event);
+	freeCache();
+	return 0;
+}
+
+// runs the main loop such as manage moving characters and moving items and choosing best player ...
+void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
+	al_wait_for_event(ev_queue, ev);
+	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
+	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
+		switch (ev->keyboard.keycode) {
+		case ALLEGRO_KEY_A:
+		case ALLEGRO_KEY_LEFT:
+			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)) {
+				moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
+				nextPlayer();
 			}
-			indicatePlayer();
-			al_flip_display();
+			__testMap();
+			break;
+		case ALLEGRO_KEY_D:
+		case ALLEGRO_KEY_RIGHT:
+			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
+				moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
+				nextPlayer();
+			}
+			__testMap();
+			break;
+		case ALLEGRO_KEY_W:
+		case ALLEGRO_KEY_UP:
+			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
+				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
+				nextPlayer();
+			}
+			__testMap();
+			break;
+		case ALLEGRO_KEY_S:
+		case ALLEGRO_KEY_DOWN:
+			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
+				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
+				nextPlayer();
+			}
+			__testMap();
+			break;
 		}
 	}
-	al_destroy_display(display);
-	al_destroy_bitmap(dogIcon);
-	return 0;
+	al_flip_display();
+	gameLoop(ev_queue, ev);
 }
 
 // -- init -- allegro display settings
@@ -143,10 +137,29 @@ char initializeDisplay() {
 	if (!al_init_ttf_addon()) return INIT_DISPLAY_TRUETYPE_FONT_ERR;
 	font = al_load_ttf_font("src/NotoSerif-Medium.ttf", 24, 0);
 	if (!font) return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
-	dogIcon = al_load_bitmap("src/dogIcon.png");
+	char temp[13];
+	for (int i = 0; i < DOG_COUNT; i++) {
+		sprintf(temp, "src/dog%d.png", i + 1);
+		dogIcon[i] = al_load_bitmap(temp);
+		if(!dogIcon[i]) return INIT_DISPLAY_IMG_NOT_FOUND;
+	}
 	mouseIcon = al_load_bitmap("src/mouse.png");
-	if (!dogIcon && !mouseIcon) return INIT_DISPLAY_IMG_NOT_FOUND;
+	chocoIcon = al_load_bitmap("src/chocolate.png");
+	fishIcon = al_load_bitmap("src/fish.png");
+	if (!mouseIcon || !chocoIcon || !fishIcon) return INIT_DISPLAY_IMG_NOT_FOUND;
+	al_set_window_position(display, 300, 40);
 	return INIT_DISPLAY_SUCCESS;
+}
+
+// free the cache before closing the window
+void freeCache() {
+	for (int i = 0; i < CAT_COUNT; i++) 
+		al_destroy_bitmap(dogIcon[i]);
+	al_destroy_bitmap(chocoIcon);
+	al_destroy_bitmap(fishIcon);
+	al_destroy_bitmap(mouseIcon);
+	al_destroy_font(font);
+	al_destroy_display(display);
 }
 
 // becuase this part of application needs many calculations. i have written unapproprietly!
@@ -227,7 +240,7 @@ void printEmptyBoard() {
 }
 
 // draw a photo in given size this function can not helpful everywhere
-void __drawScaledPhoto(ALLEGRO_BITMAP* img, int x, int y, int w) {
+void __drawScaledPhoto(ALLEGRO_BITMAP* img, float x, float y, int w) {
 	al_draw_scaled_bitmap(img, 0, 0,
 		al_get_bitmap_width(img), al_get_bitmap_height(img), x, y, w, w, 0);
 }
@@ -288,6 +301,7 @@ void printCats() {
 			al_draw_filled_circle(x, y, SQUARE_SIZE * .4, cats[i].color);
 		}
 	}
+	printChocolatesAndFishes();
 }
 
 // this complicated function allows you to move cats if that can move there
@@ -326,6 +340,7 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 	printCats();
 }
 
+// clear the previous dog locations
 void clearDogs() {
 	// ------ clear ---- dogs
 	for (int i = 0; i < DOG_COUNT; i++) {
@@ -340,11 +355,12 @@ void clearDogs() {
 void printDogs() {
 	// ------ print ---- dogs
 	for (int i = 0; i < DOG_COUNT; i++) {
-		float x = k * dogs[i].x + MARGIN;
+		float x = k * dogs[i].x + MARGIN + .15 * SQUARE_SIZE;
 		float y = k * dogs[i].y + MARGIN;
-		__drawScaledPhoto(dogIcon, x, y, SQUARE_SIZE);
+		__drawScaledPhoto(dogIcon[i], x, y, .7 * SQUARE_SIZE);
 	}
 	// ------ endPrint - dogs
+	printChocolatesAndFishes();
 }
 
 // clear previous mouses
@@ -362,9 +378,40 @@ void clearMouses() {
 void printMouses(){
 	// ------ print ---- mouses
 	for (int i = 0; i < MOUSE_COUNT; i++) {
-		float x = k * mouses[i].x + MARGIN;
+		float x = k * mouses[i].x + MARGIN + .15 * SQUARE_SIZE;
 		float y = k * mouses[i].y + MARGIN;
-		__drawScaledPhoto(mouseIcon, x, y, SQUARE_SIZE);
+		__drawScaledPhoto(mouseIcon, x, y, .7 * SQUARE_SIZE);
 	}
 	// ------ endPrint - mouses
+	printChocolatesAndFishes();
+}
+
+// print chocolates and fishes
+// use this function after doing a legal or illegal movement
+void printChocolatesAndFishes() {
+	for (int i = 0; i < BOARD_SIZE; i++) {
+		for (int j = 0; j < BOARD_SIZE; j++) {
+			if (hasFlag(map[j][i], FLAG_CHOCO)) {
+				float x = i * k + MARGIN + .5 * SQUARE_SIZE;
+				float y = j * k + MARGIN + .5 * SQUARE_SIZE;
+				__drawScaledPhoto(chocoIcon, x, y, .5 * SQUARE_SIZE);
+			}
+			if (hasFlag(map[j][i], FLAG_FISH)) {
+				float x = i * k + MARGIN;
+				float y = j * k + MARGIN + .5 * SQUARE_SIZE;
+				__drawScaledPhoto(fishIcon, x, y, .5 * SQUARE_SIZE);
+			}
+		}
+	}
+}
+
+// get the next player and then indicate that
+void nextPlayer() {
+	if (currentPlayer == CAT_COUNT - 1) {
+		clearDogs();
+		dogRandomMove();
+		printDogs();
+	}
+	currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+	indicatePlayer();
 }

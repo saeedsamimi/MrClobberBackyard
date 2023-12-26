@@ -34,6 +34,7 @@ void __generateRandomMap() {
 	// ---- init -- dogs
 	for (i = 0; i < DOG_COUNT; i++) {
 		dogs[i].speed = 1;
+		dogs[i].model = i + 1;
 		do {
 			dogs[i].x = rand() % (BOARD_SIZE / 2) + (i % 2 ? BOARD_SIZE / 2 : 0);
 			dogs[i].y = rand() % (BOARD_SIZE / 2) + (i > 1 ? BOARD_SIZE / 2 : 0);
@@ -53,7 +54,7 @@ void __generateRandomMap() {
 		t.x = BOARD_SIZE / 2;
 		t.y = BOARD_SIZE / 2;
 		// set overlaping z-index for all cats
-		for (i = 0; i < CAT_COUNT; i++) t.index = i+1, cats[i] = t;
+		for (i = 0; i < CAT_COUNT; i++) t.index = i + 1, cats[i] = t;
 		cats[0].color = BLUE;
 		cats[1].color = GREEN;
 		cats[2].color = RED;
@@ -61,7 +62,7 @@ void __generateRandomMap() {
 	}
 	// ---- init -- mouses
 	int k = 0; // first i split the board to 15 peaces and place mouses randomfully
-	for (i = 0; i < BOARD_SIZE; i+=3) for (j = 0; j < BOARD_SIZE; j+=5,k++) 
+	for (i = 0; i < BOARD_SIZE; i += 3) for (j = 0; j < BOARD_SIZE; j += 5, k++) {
 		do {
 			mouses[k].x = i + rand() % 3;
 			mouses[k].y = j + rand() % 5;
@@ -70,8 +71,10 @@ void __generateRandomMap() {
 				break;
 			}
 		} while (1);
+	}
 	// place another unplaced mouses
-	for (; k < MOUSE_COUNT;k++) 
+	for (; k < MOUSE_COUNT; k++)
+	{
 		do {
 			mouses[k].x = rand() % BOARD_SIZE;
 			mouses[k].y = rand() % BOARD_SIZE;
@@ -80,6 +83,89 @@ void __generateRandomMap() {
 				break;
 			}
 		} while (1);
+	}
+	// ---- init --- chocos
+	// quarter top left
+	const int slice = BOARD_SIZE / 2;
+	int maxCount = CHOCO_COUNT / 4;
+	for (k = 0; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice;
+		addFlag(&map[i][j], FLAG_CHOCO);
+	}
+	// quarter top right
+	maxCount += CHOCO_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_CHOCO);
+			continue;
+		}
+		k--;
+	}
+	// quarter bottom left
+	maxCount += CHOCO_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_CHOCO);
+			continue;
+		}
+		k--;
+	}
+	// last quarter is bottom right
+	for (;k < CHOCO_COUNT; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_CHOCO);
+			continue;
+		}
+		k--;
+	}
+	// ---- end init ---- chocos
+	// ---- init -------- fishes
+	// quarter top left
+	maxCount = FISH_COUNT / 4;
+	for (k = 0; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice;
+		addFlag(&map[i][j], FLAG_FISH);
+	}
+	// quarter top right
+	maxCount += FISH_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_FISH);
+			continue;
+		}
+		k--;
+	}
+	// quarter bottom left
+	maxCount += FISH_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_FISH);
+			continue;
+		}
+		k--;
+	}
+	// last quarter is bottom right
+	for (; k < FISH_COUNT; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_FISH);
+			continue;
+		}
+		k--;
+	}
 }
 
 char __noWall(int x,int y) {
