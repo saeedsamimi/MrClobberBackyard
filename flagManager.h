@@ -10,4 +10,3 @@ void addFlag(short int* flags, const short int flag) {
 void removeFlag(short int* flags, const short int flag) {
 	if (hasFlag(*flags, flag)) *flags ^= flag;
 }
-
