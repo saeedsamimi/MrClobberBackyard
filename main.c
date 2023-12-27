@@ -23,7 +23,12 @@ void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
+<<<<<<< HEAD
 void freeCache();             // free cache such as pictures and displays and fonts
+=======
+void freeCache();    
+void finishBoard();         // free cache such as pictures and displays and fonts
+>>>>>>> 8a853fc5c2bce2dfaeb85a8a4dfb603f2df8053d
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
 int currentPlayer = 0;        // as like as it's name stores the current player index
@@ -84,6 +89,11 @@ int main() {
 
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
+<<<<<<< HEAD
+=======
+	//------- Check For Game Roundes -------
+	if(currentRound>15) finishBoard();
+>>>>>>> 8a853fc5c2bce2dfaeb85a8a4dfb603f2df8053d
 	al_wait_for_event(ev_queue, ev);
 	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
@@ -408,6 +418,7 @@ void printChocolatesAndFishes() {
 // get the next player and then indicate that
 void nextPlayer() {
 	if (currentPlayer == CAT_COUNT - 1) {
+<<<<<<< HEAD
 		clearDogs();
 		dogRandomMove();
 		printDogs();
@@ -415,3 +426,20 @@ void nextPlayer() {
 	currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 	indicatePlayer();
 }
+=======
+		currentRound++;
+		clearDogs();
+		dogRandomMove();
+		printDogs();
+		clearMouses();
+		mouseRandomMove();
+		printMouses();
+		
+	}
+	currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+	printScoreBoard();
+	indicatePlayer();
+}
+
+void finishBoard() {}
+>>>>>>> 8a853fc5c2bce2dfaeb85a8a4dfb603f2df8053d
