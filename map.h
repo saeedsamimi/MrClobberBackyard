@@ -7,6 +7,7 @@
 CAT cats[CAT_COUNT];
 DOG dogs[DOG_COUNT];
 MOUSE mouses[MOUSE_COUNT];
+FISH fishes[FISH_COUNT];
 short int map[BOARD_SIZE][BOARD_SIZE];
 
 void __initColors() {
@@ -130,11 +131,16 @@ void __generateRandomMap() {
 	// ---- end init ---- chocos
 	// ---- init -------- fishes
 	// quarter top left
+	int fish_index = 0;
 	maxCount = FISH_COUNT / 4;
 	for (k = 0; k < maxCount; k++) {
 		i = rand() % slice;
 		j = rand() % slice;
+		fishes[fish_index].x = j;
+		fishes[fish_index].y = i;
+		fish_index++;
 		addFlag(&map[i][j], FLAG_FISH);
+		
 	}
 	// quarter top right
 	maxCount += FISH_COUNT / 4;
@@ -143,6 +149,9 @@ void __generateRandomMap() {
 		j = rand() % slice + slice;
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_FISH);
+			fishes[fish_index].x = j;
+			fishes[fish_index].y = i;
+			fish_index++;
 			continue;
 		}
 		k--;
@@ -154,6 +163,9 @@ void __generateRandomMap() {
 		j = rand() % slice;
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_FISH);
+				fishes[fish_index].x = j;
+			fishes[fish_index].y = i;
+			fish_index++;
 			continue;
 		}
 		k--;
@@ -164,9 +176,19 @@ void __generateRandomMap() {
 		j = rand() % slice + slice;
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_FISH);
+			fishes[fish_index].x = j;
+			fishes[fish_index].y = i;
+			fish_index++;
 			continue;
 		}
 		k--;
+	}
+	// Set Point for fishes
+	for(int i=0;i<FISH_COUNT;i++) {
+		srand(rand() - time(NULL));
+		// num = (rand() % (upper – lower + 1)) + lower 
+		int points = (rand() % (3)) + 2;
+		fishes[i].points = points;
 	}
 }
 

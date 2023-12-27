@@ -5,6 +5,11 @@
 #include "../map.h"
 #include <time.h>
 
+int canMove(int,int,enum MOVEMENT);
+void dogRandomMove();
+void eat(int, int, int);
+void mouseRandomMove();
+
 int canMove(int x, int y, enum MOVEMENT move) {
   int currentPos = map[y][x];
   int nextPos = -1;
@@ -140,8 +145,23 @@ void dogRandomMove() {
     }
 }
 
-void eachChoco(int x,int y) {
-
+// Function for Cats to eat Chocolates and Fishes
+void eat(int x,int y,int cat_index) {
+  int current_home = map[y][x];
+  if(hasFlag(current_home,FLAG_CHOCO)) {
+    cats[cat_index].attackPoint += 1;
+    removeFlag(&map[y][x],FLAG_CHOCO);
+  }
+  if(hasFlag(current_home,FLAG_FISH)) {
+    unsigned short int points;
+    for(int i=0;i<FISH_COUNT;i++) {
+      if(fishes[i].x == x && fishes[i].y ==y) {
+        points = fishes[i].points;
+        cats[cat_index].defencePoint += points;
+        removeFlag(&map[y][x],FLAG_FISH);
+      }
+    }
+  }
 }
 
 

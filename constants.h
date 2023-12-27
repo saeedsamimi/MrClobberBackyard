@@ -57,6 +57,12 @@ typedef struct {
 	char model;
 } DOG;
 
+typedef struct {
+	unsigned short int x;
+	unsigned short int y;
+	unsigned short int points;
+} FISH;
+
 enum MOVEMENT {
 	UP,
 	DOWN,

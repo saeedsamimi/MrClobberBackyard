@@ -93,8 +93,8 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_A:
 		case ALLEGRO_KEY_LEFT:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)) {
-				
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
+				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
@@ -103,6 +103,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_RIGHT:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
+				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
@@ -111,6 +112,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_UP:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
+				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
@@ -119,6 +121,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_DOWN:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
+				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
