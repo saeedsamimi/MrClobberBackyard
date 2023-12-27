@@ -23,8 +23,8 @@ void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
-void freeCache();    
-void finishBoard();         // free cache such as pictures and displays and fonts
+void freeCache();  // free cache such as pictures and displays and fonts  
+void finishBoard();  // Show Winner after game ends! and show Replay/Exit menu!
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
 int currentPlayer = 0;        // as like as it's name stores the current player index

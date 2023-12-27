@@ -125,7 +125,6 @@ void dogRandomMove() {
           }        
           addFlag(&map[new_y][new_x],FLAG_DOG);
           removeFlag(&map[y][x],FLAG_DOG);
-          al_rest(0.3);
         }
         dogs[dog_index].x = new_x;
         dogs[dog_index].y = new_y;
@@ -146,7 +145,7 @@ void mouseRandomMove() {
         {
             new_x = x;
             new_y = y;
-            direction_number = (rand() % (4)) + 1;
+            direction_number = (rand() % (6)) + 1;
             switch (direction_number)
             {
             case 1:
@@ -169,6 +168,29 @@ void mouseRandomMove() {
                 movement = LEFT;
                 new_x = x-1;
                 break;
+            case 5:
+              // UP_RIGHT
+              movement = UP_RIGHT;
+              new_x = x+1;
+              new_y = y-1;
+              break;
+            case 6:
+              //UP_LEFT
+              movement = UP_LEFT;
+              new_x = x-1;
+              new_y = y-1;
+              break;
+            case 7:
+              // DOWN_LEFT
+              movement = DOWN_LEFT;
+              new_x = x-1;
+              new_y = y+1;
+              break;
+            case 8:
+            // DOWN_RIGHT
+              new_x = x+1;
+              new_y = y+1;
+              break;
             }
             if(canMove(x,y,movement)) break;
         }
