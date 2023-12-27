@@ -414,11 +414,13 @@ void nextPlayer() {
 		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 		currentRound++;
 		clearDogs();
-		clearMouses();
 		dogRandomMove();
+		printDogs();
+		clearMouses();
 		mouseRandomMove();
 		printMouses();
-		printDogs();
+		printCats();
+		
 		printChocolatesAndFishes();
 	} else{ 
 		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
@@ -427,4 +429,4 @@ void nextPlayer() {
 	indicatePlayer();
 }
 
-void finishBoard() {}
+void finishBoard() {exit(0);}

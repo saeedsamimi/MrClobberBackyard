@@ -3,11 +3,14 @@
 #include "../flagManager.h"
 #include "stdio.h"
 #include "../map.h"
+#include <time.h>
 
 int canMove(int x, int y, enum MOVEMENT move) {
   int currentPos = map[y][x];
-  int nextPos;
-  enum CHARACTER_TYPE current_character;
+  int nextPos = -1;
+  int new_x =x ;
+  int new_y =y;
+  enum CHARACTER_TYPE current_character = NO_CHARACTER;
   enum CHARACTER_TYPE nextPos_character = NO_CHARACTER;
   // Define next Position and Check for walls and Borders
   switch (move)
@@ -34,25 +37,26 @@ int canMove(int x, int y, enum MOVEMENT move) {
     break;
   case UP_RIGHT:
     if (hasFlag(currentPos, FLAG_RWALL) && hasFlag(currentPos, FLAG_UWALL)) return 0;
-    if (y - 1 < 0 || x + 1 <= BOARD_SIZE) return 0;
+    if (y <= 0 || x + 1 >= BOARD_SIZE) return 0; //FIXED
     nextPos = map[y - 1][x + 1];
     break;
   case UP_LEFT:
     if (hasFlag(currentPos, FLAG_UWALL) && hasFlag(currentPos, FLAG_LWALL)) return 0;
-    if (y - 1 < 0 || x - 1 < 0) return 0;
+    if (y <= 0 || x <= 0) return 0; //FIXED
     nextPos = map[y - 1][x - 1];
     break;
   case DOWN_RIGHT:
     if (hasFlag(currentPos, FLAG_RWALL) && hasFlag(currentPos, FLAG_DWALL)) return 0;
-    if (y + 1 >= BOARD_SIZE || x + 1 <= BOARD_SIZE) return 0;
+    if (y + 1 >= BOARD_SIZE || x + 1 >= BOARD_SIZE) return 0; //FIXED
     nextPos = map[y + 1][x + 1];
     break;
   case DOWN_LEFT:
     if (hasFlag(currentPos, FLAG_LWALL) && hasFlag(currentPos, FLAG_DWALL)) return 0;
-    if (y + 1 >= BOARD_SIZE || x - 1 < 0) return 0;
+    if (y + 1 >= BOARD_SIZE || x <= 0) return 0; //FIXED
     nextPos = map[y + 1][x - 1];
     break;
   }
+  if(nextPos == -1) return 0;
   //----------- Set Current Character -----------
   if (hasFlag(currentPos, FLAG_DOG)) {
     current_character = DOG_CHARACTER;
@@ -79,6 +83,9 @@ int canMove(int x, int y, enum MOVEMENT move) {
   if (nextPos_character == NO_CHARACTER) return 1;
   if (current_character == CAT_CHARACTER) 
     return 1;
+  if(current_character == nextPos_character) return 0;
+  if(current_character == DOG_CHARACTER && nextPos_character == MOUSE_CHARACTER) return 0;
+  if(nextPos_character == DOG_CHARACTER && current_character == MOUSE_CHARACTER) return 0;
   return 0;
 }
 
@@ -87,6 +94,7 @@ void dogRandomMove() {
     enum MOVEMENT movement;
     int new_x;
     int new_y;
+    srand(rand() - time(NULL));
     // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
     for(int dog_index = 0; dog_index< DOG_COUNT;dog_index++) {
         int x = dogs[dog_index].x;
@@ -120,6 +128,8 @@ void dogRandomMove() {
                   new_x = x-1;
                   break;
               }
+              if(new_x <0 || new_x >= BOARD_SIZE) new_x = x;
+              if(new_y <0 || new_y >= BOARD_SIZE) new_y = y;
               if(canMove(x,y,movement)) break;
           }        
           addFlag(&map[new_y][new_x],FLAG_DOG);
@@ -130,11 +140,17 @@ void dogRandomMove() {
     }
 }
 
+void eachChoco(int x,int y) {
+
+}
+
+
 void mouseRandomMove() {
     int direction_number;
-    enum MOVEMENT movement;
+    enum MOVEMENT movement = NO_MOVE;
     int new_x;
     int new_y;
+    srand(rand() - time(NULL));
     // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
     for(int mouse_index = 0; mouse_index< MOUSE_COUNT;mouse_index++) {
         int x = mouses[mouse_index].x;
@@ -144,7 +160,7 @@ void mouseRandomMove() {
           {
               new_x = x;
               new_y = y;
-              direction_number = (rand() % (6)) + 1;
+              direction_number = (rand() % (8)) + 1;
               switch (direction_number)
               {
               case 1:
@@ -191,6 +207,8 @@ void mouseRandomMove() {
                 new_y = y+1;
                 break;
               }
+              if(new_x <0 || new_x >= BOARD_SIZE) new_x = x;
+              if(new_y <0 || new_y >= BOARD_SIZE) new_y = y;
               if(canMove(x,y,movement)) break;
           }
           x = new_x;

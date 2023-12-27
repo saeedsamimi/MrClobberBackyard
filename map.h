@@ -1,6 +1,7 @@
 #pragma once
 #include "constants.h"
 #include "flagManager.h"
+#include <time.h>
 #include <math.h>
 
 CAT cats[CAT_COUNT];
@@ -30,7 +31,7 @@ void __generateRandomMap() {
 	// ---- prereserve -- the location of all cats
 	map[BOARD_SIZE / 2][BOARD_SIZE / 2] = FLAG_CAT;
 	// ---- init -- change the random seed
-	srand(time(NULL));
+	srand(rand() - time(NULL));
 	// ---- init -- dogs
 	for (i = 0; i < DOG_COUNT; i++) {
 		dogs[i].speed = 1;
@@ -68,7 +69,7 @@ void __generateRandomMap() {
 			mouses[k].y = j + rand() % 5;
 			if (!map[mouses[k].y][mouses[k].x]) {
 				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
-				mouses[k].points = 5; // CHANGE THIS To DYNAMICLLY GENERATE POINTS
+				mouses[k].points = 3; // CHANGE THIS To DYNAMICLLY GENERATE POINTS
 				break;
 			}
 		} while (1);
@@ -179,7 +180,7 @@ char __noWall(int x,int y) {
 }
 
 void __generateRandomWalls() {
-	srand(time(NULL));
+	srand(rand() - time(NULL));
 	for (int i = 0; i < WALL_COUNT; i++) {
 		int x = 1 + rand() % (BOARD_SIZE-2);
 		int y = 1 + rand() % (BOARD_SIZE-2);
