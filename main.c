@@ -23,8 +23,8 @@ void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
-void freeCache();  // free cache such as pictures and displays and fonts  
-void finishBoard();  // Show Winner after game ends! and show Replay/Exit menu!
+void freeCache();    
+void finishBoard();         // free cache such as pictures and displays and fonts
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
 int currentPlayer = 0;        // as like as it's name stores the current player index
@@ -59,9 +59,6 @@ int main() {
 		case INIT_DISPLAY_IMG_NOT_FOUND:
 			printf("can not found/load the png files(\"mouseIcon.png or dogIcon.png\")");
 			return INIT_DISPLAY_IMG_NOT_FOUND;
-		default:
-			al_clear_to_color(WHITE);
-			break;
 		}
 		// ------ End of Handling -------------------------------------
 	}
@@ -221,6 +218,7 @@ void printScoreBoard() {
 // print initialized map with walls but no player placed at squares
 // only prints the empty board not anything else
 void printEmptyBoard() {
+	al_clear_to_color(WHITE);
 	for (int i = 0; i < BOARD_SIZE; i++) 
 		for (int j = 0; j < BOARD_SIZE; j++) {
 			// solve and draw the dimensions of rectangle
@@ -260,6 +258,7 @@ void printPlayers() {
 	// ------ endPrint-- cat
 	printDogs();
 	printMouses();
+	printChocolatesAndFishes();
 }
 
 // this function is show that where is the current player's cat 
@@ -363,7 +362,6 @@ void printDogs() {
 		__drawScaledPhoto(dogIcon[i], x, y, .7 * SQUARE_SIZE);
 	}
 	// ------ endPrint - dogs
-	printChocolatesAndFishes();
 }
 
 // clear previous mouses
@@ -386,7 +384,6 @@ void printMouses(){
 		__drawScaledPhoto(mouseIcon, x, y, .7 * SQUARE_SIZE);
 	}
 	// ------ endPrint - mouses
-	printChocolatesAndFishes();
 }
 
 // print chocolates and fishes
@@ -411,16 +408,17 @@ void printChocolatesAndFishes() {
 // get the next player and then indicate that
 void nextPlayer() {
 	if (currentPlayer == CAT_COUNT - 1) {
+		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 		currentRound++;
 		clearDogs();
-		dogRandomMove();
-		printDogs();
 		clearMouses();
+		dogRandomMove();
 		mouseRandomMove();
 		printMouses();
-		
-	}
-	currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+		printDogs();
+		printChocolatesAndFishes();
+	} else 
+		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 	printScoreBoard();
 	indicatePlayer();
 }

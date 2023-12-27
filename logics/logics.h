@@ -64,7 +64,7 @@ int canMove(int x, int y, enum MOVEMENT move) {
     current_character = MOUSE_CHARACTER;
   }
   //---------- Set Next Position Character --------
-  printf("%d is the data of next pos", nextPos);
+  //printf("%d is the data of next pos", nextPos);
   if (hasFlag(nextPos, FLAG_DOG)) {
     nextPos_character = DOG_CHARACTER;
   }
@@ -81,7 +81,6 @@ int canMove(int x, int y, enum MOVEMENT move) {
     return 1;
   return 0;
 }
-
 
 void dogRandomMove() {
     int direction_number;
