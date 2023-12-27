@@ -23,12 +23,8 @@ void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
-<<<<<<< HEAD
-void freeCache();             // free cache such as pictures and displays and fonts
-=======
-void freeCache();    
-void finishBoard();         // free cache such as pictures and displays and fonts
->>>>>>> 8a853fc5c2bce2dfaeb85a8a4dfb603f2df8053d
+void freeCache();             // free cache such as pictures and displays and fonts    
+void finishBoard();         
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
 int currentPlayer = 0;        // as like as it's name stores the current player index
@@ -63,9 +59,6 @@ int main() {
 		case INIT_DISPLAY_IMG_NOT_FOUND:
 			printf("can not found/load the png files(\"mouseIcon.png or dogIcon.png\")");
 			return INIT_DISPLAY_IMG_NOT_FOUND;
-		default:
-			al_clear_to_color(WHITE);
-			break;
 		}
 		// ------ End of Handling -------------------------------------
 	}
@@ -89,11 +82,8 @@ int main() {
 
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
-<<<<<<< HEAD
-=======
 	//------- Check For Game Roundes -------
 	if(currentRound>15) finishBoard();
->>>>>>> 8a853fc5c2bce2dfaeb85a8a4dfb603f2df8053d
 	al_wait_for_event(ev_queue, ev);
 	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
@@ -228,6 +218,7 @@ void printScoreBoard() {
 // print initialized map with walls but no player placed at squares
 // only prints the empty board not anything else
 void printEmptyBoard() {
+	al_clear_to_color(WHITE);
 	for (int i = 0; i < BOARD_SIZE; i++) 
 		for (int j = 0; j < BOARD_SIZE; j++) {
 			// solve and draw the dimensions of rectangle
@@ -267,6 +258,7 @@ void printPlayers() {
 	// ------ endPrint-- cat
 	printDogs();
 	printMouses();
+	printChocolatesAndFishes();
 }
 
 // this function is show that where is the current player's cat 
@@ -370,7 +362,6 @@ void printDogs() {
 		__drawScaledPhoto(dogIcon[i], x, y, .7 * SQUARE_SIZE);
 	}
 	// ------ endPrint - dogs
-	printChocolatesAndFishes();
 }
 
 // clear previous mouses
@@ -393,7 +384,6 @@ void printMouses(){
 		__drawScaledPhoto(mouseIcon, x, y, .7 * SQUARE_SIZE);
 	}
 	// ------ endPrint - mouses
-	printChocolatesAndFishes();
 }
 
 // print chocolates and fishes
@@ -418,28 +408,19 @@ void printChocolatesAndFishes() {
 // get the next player and then indicate that
 void nextPlayer() {
 	if (currentPlayer == CAT_COUNT - 1) {
-<<<<<<< HEAD
-		clearDogs();
-		dogRandomMove();
-		printDogs();
-	}
-	currentPlayer = (currentPlayer + 1) % CAT_COUNT;
-	indicatePlayer();
-}
-=======
+		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 		currentRound++;
 		clearDogs();
-		dogRandomMove();
-		printDogs();
 		clearMouses();
+		dogRandomMove();
 		mouseRandomMove();
 		printMouses();
-		
-	}
-	currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+		printDogs();
+		printChocolatesAndFishes();
+	} else 
+		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 	printScoreBoard();
 	indicatePlayer();
 }
 
 void finishBoard() {}
->>>>>>> 8a853fc5c2bce2dfaeb85a8a4dfb603f2df8053d
