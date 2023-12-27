@@ -6,6 +6,7 @@
 #include "allegro5/allegro_image.h"
 #include "map.h"
 #include "test.h"
+#include "constants.h"
 #include "logics/logics.h"
 #include <limits.h>
 
@@ -22,7 +23,7 @@ void printChocolatesAndFishes(); // print all cholates and fishes finally
 void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
-void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
+void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main game loop
 void freeCache();    
 void finishBoard();         // free cache such as pictures and displays and fonts
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
@@ -75,22 +76,24 @@ int main() {
 	al_register_event_source(ev_queue, al_get_keyboard_event_source());
 	ALLEGRO_EVENT event;
 	// only for test this section , this is going to be changed as soon as possible
-	gameLoop(ev_queue, &event);
+	gameLoop(ev_queue, &event,NO_MOVE);
 	freeCache();
 	return 0;
 }
 
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
-void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
+void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT previous_move) {
 	//------- Check For Game Roundes -------
 	if(currentRound>15) finishBoard();
 	al_wait_for_event(ev_queue, ev);
 	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
+		al_flip_display();
 		switch (ev->keyboard.keycode) {
 		case ALLEGRO_KEY_A:
 		case ALLEGRO_KEY_LEFT:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)) {
+				
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
 				nextPlayer();
 			}
@@ -123,7 +126,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 		}
 	}
 	al_flip_display();
-	gameLoop(ev_queue, ev);
+	gameLoop(ev_queue, ev,NO_MOVE);
 }
 
 // -- init -- allegro display settings
@@ -417,8 +420,9 @@ void nextPlayer() {
 		printMouses();
 		printDogs();
 		printChocolatesAndFishes();
-	} else 
+	} else{ 
 		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+	}
 	printScoreBoard();
 	indicatePlayer();
 }

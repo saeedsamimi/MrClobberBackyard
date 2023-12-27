@@ -77,7 +77,7 @@ int canMove(int x, int y, enum MOVEMENT move) {
   // Condition - Check Overlap for non-cat characters 
   // Cat's can be overlaped!
   if (nextPos_character == NO_CHARACTER) return 1;
-  if (current_character == CAT_CHARACTER && current_character == nextPos_character) 
+  if (current_character == CAT_CHARACTER) 
     return 1;
   return 0;
 }
@@ -139,63 +139,65 @@ void mouseRandomMove() {
     for(int mouse_index = 0; mouse_index< MOUSE_COUNT;mouse_index++) {
         int x = mouses[mouse_index].x;
         int y = mouses[mouse_index].y;
-        
-        for(int i=0;i<5;i++)
-        {
-            new_x = x;
-            new_y = y;
-            direction_number = (rand() % (6)) + 1;
-            switch (direction_number)
-            {
-            case 1:
-                //UP
-                movement = UP;
+        for(int points=0;points<mouses[mouse_index].points;points++) {
+          for(int i=0;i<5;i++)
+          {
+              new_x = x;
+              new_y = y;
+              direction_number = (rand() % (6)) + 1;
+              switch (direction_number)
+              {
+              case 1:
+                  //UP
+                  movement = UP;
+                  new_y = y-1;
+                  break;
+              case 2:
+                  //RIGHT
+                  movement = RIGHT;
+                  new_x = x+1;
+                  break;
+              case 3:
+                  //DOWN
+                  movement = DOWN;
+                  new_y = y+1;
+                  break;
+              case 4:
+                  //LEFT
+                  movement = LEFT;
+                  new_x = x-1;
+                  break;
+              case 5:
+                // UP_RIGHT
+                movement = UP_RIGHT;
+                new_x = x+1;
                 new_y = y-1;
                 break;
-            case 2:
-                //RIGHT
-                movement = RIGHT;
-                new_x = x+1;
+              case 6:
+                //UP_LEFT
+                movement = UP_LEFT;
+                new_x = x-1;
+                new_y = y-1;
                 break;
-            case 3:
-                //DOWN
-                movement = DOWN;
+              case 7:
+                // DOWN_LEFT
+                movement = DOWN_LEFT;
+                new_x = x-1;
                 new_y = y+1;
                 break;
-            case 4:
-                //LEFT
-                movement = LEFT;
-                new_x = x-1;
+              case 8:
+              // DOWN_RIGHT
+                new_x = x+1;
+                new_y = y+1;
                 break;
-            case 5:
-              // UP_RIGHT
-              movement = UP_RIGHT;
-              new_x = x+1;
-              new_y = y-1;
-              break;
-            case 6:
-              //UP_LEFT
-              movement = UP_LEFT;
-              new_x = x-1;
-              new_y = y-1;
-              break;
-            case 7:
-              // DOWN_LEFT
-              movement = DOWN_LEFT;
-              new_x = x-1;
-              new_y = y+1;
-              break;
-            case 8:
-            // DOWN_RIGHT
-              new_x = x+1;
-              new_y = y+1;
-              break;
-            }
-            if(canMove(x,y,movement)) break;
+              }
+              if(canMove(x,y,movement)) break;
+          }
+          x = new_x;
+          y = new_y;
+          addFlag(&map[new_y][new_x],FLAG_MOUSE);
+          removeFlag(&map[y][x],FLAG_MOUSE);
         }
-        
-        addFlag(&map[new_y][new_x],FLAG_MOUSE);
-        removeFlag(&map[y][x],FLAG_MOUSE);
 
         mouses[mouse_index].x = new_x;
         mouses[mouse_index].y = new_y;

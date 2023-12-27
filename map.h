@@ -68,6 +68,7 @@ void __generateRandomMap() {
 			mouses[k].y = j + rand() % 5;
 			if (!map[mouses[k].y][mouses[k].x]) {
 				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
+				mouses[k].points = 5; // CHANGE THIS To DYNAMICLLY GENERATE POINTS
 				break;
 			}
 		} while (1);
