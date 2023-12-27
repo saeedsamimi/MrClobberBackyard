@@ -5,6 +5,8 @@
 #include "../map.h"
 #include <time.h>
 
+unsigned short int REMAINING_FISHES = FISH_COUNT;
+
 int canMove(int,int,enum MOVEMENT);
 void dogRandomMove();
 void eat(int, int, int);
@@ -159,6 +161,11 @@ void eat(int x,int y,int cat_index) {
         points = fishes[i].points;
         cats[cat_index].defencePoint += points;
         removeFlag(&map[y][x],FLAG_FISH);
+        REMAINING_FISHES--;
+        if(REMAINING_FISHES < CAT_COUNT) {
+          clearFishes();
+          __initFishes();
+        }
       }
     }
   }

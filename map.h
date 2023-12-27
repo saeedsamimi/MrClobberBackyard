@@ -25,6 +25,82 @@ void __initColors() {
 	BLACK = al_map_rgb(0, 0, 0);
 }
 
+void __initFishes() {
+	// ---- init -------- fishes
+	// Clear Current Board from Fishes to reinit the board 
+	for(int i=0;i<BOARD_SIZE;i++) {
+		for(int j=0;j<BOARD_SIZE;j++) {
+			if(hasFlag(map[i][j],FLAG_FISH)) {
+				removeFlag(&map[i][j],FLAG_FISH);
+			}
+		}
+	}
+
+	// quarter top left
+	const int slice = BOARD_SIZE / 2;
+	int fish_index = 0;
+	int i,j,k;
+	int maxCount = FISH_COUNT / 4;
+	for (k = 0; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice;
+		fishes[fish_index].x = j;
+		fishes[fish_index].y = i;
+		fish_index++;
+		addFlag(&map[i][j], FLAG_FISH);
+		
+	}
+	// quarter top right
+	maxCount += FISH_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_FISH);
+			fishes[fish_index].x = j;
+			fishes[fish_index].y = i;
+			fish_index++;
+			continue;
+		}
+		k--;
+	}
+	// quarter bottom left
+	maxCount += FISH_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_FISH);
+				fishes[fish_index].x = j;
+			fishes[fish_index].y = i;
+			fish_index++;
+			continue;
+		}
+		k--;
+	}
+	// last quarter is bottom right
+	for (; k < FISH_COUNT; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_FISH);
+			fishes[fish_index].x = j;
+			fishes[fish_index].y = i;
+			fish_index++;
+			continue;
+		}
+		k--;
+	}
+	// Set Point for fishes
+	for(int i=0;i<FISH_COUNT;i++) {
+		srand(rand() - time(NULL));
+		// num = (rand() % (upper – lower + 1)) + lower 
+		int points = (rand() % (3)) + 2;
+		fishes[i].points = points;
+	}
+}
+
+
 void __generateRandomMap() {
 	// ---- start -- reset board map and modifing two iterators
 	int i, j;
@@ -129,67 +205,7 @@ void __generateRandomMap() {
 		k--;
 	}
 	// ---- end init ---- chocos
-	// ---- init -------- fishes
-	// quarter top left
-	int fish_index = 0;
-	maxCount = FISH_COUNT / 4;
-	for (k = 0; k < maxCount; k++) {
-		i = rand() % slice;
-		j = rand() % slice;
-		fishes[fish_index].x = j;
-		fishes[fish_index].y = i;
-		fish_index++;
-		addFlag(&map[i][j], FLAG_FISH);
-		
-	}
-	// quarter top right
-	maxCount += FISH_COUNT / 4;
-	for (; k < maxCount; k++) {
-		i = rand() % slice;
-		j = rand() % slice + slice;
-		if (!hasFlag(map[i][j], FLAG_CAT)) {
-			addFlag(&map[i][j], FLAG_FISH);
-			fishes[fish_index].x = j;
-			fishes[fish_index].y = i;
-			fish_index++;
-			continue;
-		}
-		k--;
-	}
-	// quarter bottom left
-	maxCount += FISH_COUNT / 4;
-	for (; k < maxCount; k++) {
-		i = rand() % slice + slice;
-		j = rand() % slice;
-		if (!hasFlag(map[i][j], FLAG_CAT)) {
-			addFlag(&map[i][j], FLAG_FISH);
-				fishes[fish_index].x = j;
-			fishes[fish_index].y = i;
-			fish_index++;
-			continue;
-		}
-		k--;
-	}
-	// last quarter is bottom right
-	for (; k < FISH_COUNT; k++) {
-		i = rand() % slice + slice;
-		j = rand() % slice + slice;
-		if (!hasFlag(map[i][j], FLAG_CAT)) {
-			addFlag(&map[i][j], FLAG_FISH);
-			fishes[fish_index].x = j;
-			fishes[fish_index].y = i;
-			fish_index++;
-			continue;
-		}
-		k--;
-	}
-	// Set Point for fishes
-	for(int i=0;i<FISH_COUNT;i++) {
-		srand(rand() - time(NULL));
-		// num = (rand() % (upper – lower + 1)) + lower 
-		int points = (rand() % (3)) + 2;
-		fishes[i].points = points;
-	}
+	__initFishes(map);
 }
 
 char __noWall(int x,int y) {
@@ -228,6 +244,17 @@ void __generateRandomWalls() {
 		}
 		else i--;
 	}
+}
+
+void clearFishes() {
+	const short int k = SQUARE_SIZE + 2 * MARGIN; // a helpfull number to save the size of each box
+	// ------ clear ---- mouses
+	for (int i = 0; i < MOUSE_COUNT; i++) {
+		float x = fishes[i].x * k + MARGIN;
+		float y = fishes[i].y * k + MARGIN;
+		al_draw_filled_rectangle(x, y, x + SQUARE_SIZE, y + SQUARE_SIZE, COLOR4);
+	}
+	// ------ end clear ---- mouses
 }
 
 void setMap() {

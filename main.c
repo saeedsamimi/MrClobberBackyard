@@ -411,6 +411,7 @@ void printChocolatesAndFishes() {
 	}
 }
 
+
 // get the next player and then indicate that
 void nextPlayer() {
 	if (currentPlayer == CAT_COUNT - 1) {
