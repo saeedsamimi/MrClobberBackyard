@@ -3,6 +3,7 @@
 #include "flagManager.h"
 #include <time.h>
 #include <math.h>
+#include "logics/random.h"
 
 CAT cats[CAT_COUNT];
 DOG dogs[DOG_COUNT];
@@ -15,8 +16,6 @@ void __initColors() {
 	GREEN = al_map_rgb_f(0, 1, 0);
 	RED = al_map_rgb_f(1, 0, 0);
 	MAGENTA = al_map_rgb_f(1, 0, 1);
-	DOG_COLOR = al_map_rgb(93,38,137);
-	MOUSE_COLOR = al_map_rgb(0, 128, 129);
 	COLOR1 = al_map_rgb(212, 0, 0);
 	COLOR2 = al_map_rgb(225, 44, 44);
 	COLOR3 = al_map_rgb(225, 165, 0);
@@ -28,33 +27,25 @@ void __initColors() {
 void __initFishes() {
 	// ---- init -------- fishes
 	// Clear Current Board from Fishes to reinit the board 
-	for(int i=0;i<BOARD_SIZE;i++) {
-		for(int j=0;j<BOARD_SIZE;j++) {
-			if(hasFlag(map[i][j],FLAG_FISH)) {
-				removeFlag(&map[i][j],FLAG_FISH);
-			}
-		}
-	}
-
+	for (int i = 0; i < BOARD_SIZE; i++)
+		for (int j = 0; j < BOARD_SIZE; j++)
+			if (hasFlag(map[i][j], FLAG_FISH))
+				removeFlag(&map[i][j], FLAG_FISH);
 	// quarter top left
 	const int slice = BOARD_SIZE / 2;
-	int fish_index = 0;
-	int i,j,k;
-	int maxCount = FISH_COUNT / 4;
+	int fish_index = 0, maxCount = FISH_COUNT / 4, i, j, k;
 	for (k = 0; k < maxCount; k++) {
-		i = rand() % slice;
-		j = rand() % slice;
+		i = random(slice);
+		j = random(slice);
 		fishes[fish_index].x = j;
-		fishes[fish_index].y = i;
-		fish_index++;
+		fishes[fish_index++].y = i;
 		addFlag(&map[i][j], FLAG_FISH);
-		
 	}
 	// quarter top right
 	maxCount += FISH_COUNT / 4;
 	for (; k < maxCount; k++) {
-		i = rand() % slice;
-		j = rand() % slice + slice;
+		i = random(slice);
+		j = random(slice) + slice;
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_FISH);
 			fishes[fish_index].x = j;
@@ -67,11 +58,11 @@ void __initFishes() {
 	// quarter bottom left
 	maxCount += FISH_COUNT / 4;
 	for (; k < maxCount; k++) {
-		i = rand() % slice + slice;
-		j = rand() % slice;
+		i = random(slice) + slice;
+		j = random(slice);
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_FISH);
-				fishes[fish_index].x = j;
+			fishes[fish_index].x = j;
 			fishes[fish_index].y = i;
 			fish_index++;
 			continue;
@@ -80,8 +71,8 @@ void __initFishes() {
 	}
 	// last quarter is bottom right
 	for (; k < FISH_COUNT; k++) {
-		i = rand() % slice + slice;
-		j = rand() % slice + slice;
+		i = random(slice) + slice;
+		j = random(slice) + slice;
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_FISH);
 			fishes[fish_index].x = j;
@@ -92,14 +83,11 @@ void __initFishes() {
 		k--;
 	}
 	// Set Point for fishes
-	for(int i=0;i<FISH_COUNT;i++) {
-		srand(rand() - time(NULL));
-		// num = (rand() % (upper – lower + 1)) + lower 
-		int points = (rand() % (3)) + 2;
+	for (int i = 0; i < FISH_COUNT; i++) {
+		int points = random(3) + 2;
 		fishes[i].points = points;
 	}
 }
-
 
 void __generateRandomMap() {
 	// ---- start -- reset board map and modifing two iterators
@@ -107,15 +95,13 @@ void __generateRandomMap() {
 	for (i = 0; i < BOARD_SIZE; i++) for (j = 0; j < BOARD_SIZE; j++) map[i][j] = 0;
 	// ---- prereserve -- the location of all cats
 	map[BOARD_SIZE / 2][BOARD_SIZE / 2] = FLAG_CAT;
-	// ---- init -- change the random seed
-	srand(rand() - time(NULL));
 	// ---- init -- dogs
 	for (i = 0; i < DOG_COUNT; i++) {
 		dogs[i].speed = 1;
 		dogs[i].model = i + 1;
 		do {
-			dogs[i].x = rand() % (BOARD_SIZE / 2) + (i % 2 ? BOARD_SIZE / 2 : 0);
-			dogs[i].y = rand() % (BOARD_SIZE / 2) + (i > 1 ? BOARD_SIZE / 2 : 0);
+			dogs[i].x = random(BOARD_SIZE / 2) + (i % 2 ? BOARD_SIZE / 2 : 0);
+			dogs[i].y = random(BOARD_SIZE / 2) + (i > 1 ? BOARD_SIZE / 2 : 0);
 			if (!map[dogs[i].y][dogs[i].x]) {
 				map[dogs[i].y][dogs[i].x] = FLAG_DOG;
 				break;
@@ -140,19 +126,18 @@ void __generateRandomMap() {
 	}
 	// ---- init -- mouses
 	int k = 0; // first i split the board to 15 peaces and place mouses randomfully
-	for (i = 0; i < BOARD_SIZE; i += 3) for (j = 0; j < BOARD_SIZE; j += 5, k++) {
+	for (i = 0; i < BOARD_SIZE; i += 3) for (j = 0; j < BOARD_SIZE; j += 5, k++) 
 		do {
-			mouses[k].x = i + rand() % 3;
-			mouses[k].y = j + rand() % 5;
+			mouses[k].x = i + random(3);
+			mouses[k].y = j + random(5);
 			if (!map[mouses[k].y][mouses[k].x]) {
 				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
 				break;
 			}
 		} while (1);
-	}
 	// place another unplaced mouses
+	updateSeed();
 	for (; k < MOUSE_COUNT; k++)
-	{
 		do {
 			mouses[k].x = rand() % BOARD_SIZE;
 			mouses[k].y = rand() % BOARD_SIZE;
@@ -161,26 +146,23 @@ void __generateRandomMap() {
 				break;
 			}
 		} while (1);
-	}
 	// Set Points for Mouses 
-	srand(rand() - time(NULL));
-	for(int i=0;i<MOUSE_COUNT;i++) {
-		mouses[i].points = rand() % 3 + 1;
-	}
+	for (int i = 0; i < MOUSE_COUNT; i++) 
+		mouses[i].points = random(3) + 1;
 	// ---- init --- chocos
 	// quarter top left
 	const int slice = BOARD_SIZE / 2;
 	int maxCount = CHOCO_COUNT / 4;
 	for (k = 0; k < maxCount; k++) {
-		i = rand() % slice;
-		j = rand() % slice;
+		i = random(slice);
+		j = random(slice);
 		addFlag(&map[i][j], FLAG_CHOCO);
 	}
 	// quarter top right
 	maxCount += CHOCO_COUNT / 4;
 	for (; k < maxCount; k++) {
-		i = rand() % slice;
-		j = rand() % slice + slice;
+		i = random(slice);
+		j = random(slice) + slice;
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_CHOCO);
 			continue;
@@ -190,8 +172,8 @@ void __generateRandomMap() {
 	// quarter bottom left
 	maxCount += CHOCO_COUNT / 4;
 	for (; k < maxCount; k++) {
-		i = rand() % slice + slice;
-		j = rand() % slice;
+		i = random(slice) + slice;
+		j = random(slice);
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_CHOCO);
 			continue;
@@ -199,9 +181,9 @@ void __generateRandomMap() {
 		k--;
 	}
 	// last quarter is bottom right
-	for (;k < CHOCO_COUNT; k++) {
-		i = rand() % slice + slice;
-		j = rand() % slice + slice;
+	for (; k < CHOCO_COUNT; k++) {
+		i = random(slice) + slice;
+		j = random(slice) + slice;
 		if (!hasFlag(map[i][j], FLAG_CAT)) {
 			addFlag(&map[i][j], FLAG_CHOCO);
 			continue;
@@ -212,7 +194,7 @@ void __generateRandomMap() {
 	__initFishes(map);
 }
 
-char __noWall(int x,int y) {
+char __noWall(int x, int y) {
 	if (hasFlag(map[y][x], FLAG_RWALL) ||
 		hasFlag(map[y][x], FLAG_LWALL) ||
 		hasFlag(map[y][x], FLAG_UWALL) ||
@@ -222,12 +204,12 @@ char __noWall(int x,int y) {
 }
 
 void __generateRandomWalls() {
-	srand(rand() - time(NULL));
+	updateSeed();
 	for (int i = 0; i < WALL_COUNT; i++) {
-		int x = 1 + rand() % (BOARD_SIZE-2);
-		int y = 1 + rand() % (BOARD_SIZE-2);
-		if (__noWall(x, y)) {
-			switch (rand() % 4) {
+		int x = 1 + rand() % (BOARD_SIZE - 2);
+		int y = 1 + rand() % (BOARD_SIZE - 2);
+		if (__noWall(x, y))
+			switch (random(4)) {
 			case 0:
 				addFlag(&map[y][x], FLAG_RWALL);
 				addFlag(&map[y][x + 1], FLAG_LWALL);
@@ -245,7 +227,6 @@ void __generateRandomWalls() {
 				addFlag(&map[y - 1][x], FLAG_DWALL);
 				break;
 			}
-		}
 		else i--;
 	}
 }

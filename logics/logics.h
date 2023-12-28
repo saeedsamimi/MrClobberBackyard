@@ -7,8 +7,7 @@
 #include "random.h"
 
 unsigned short int REMAINING_FISHES = FISH_COUNT;
-unsigned short int REMAINING_MOUSES = MOUSE_COUNT;
-int canMove(int,int,enum MOVEMENT);
+int canMove(int,int,enum MOVEMENT move);
 void dogRandomMove();
 void eat(int, int, int);
 void mouseRandomMove();
@@ -100,12 +99,10 @@ int canMove(int x, int y, enum MOVEMENT move) {
 void dogRandomMove() {
   int direction_number;
   enum MOVEMENT movement;
-  int new_x;
-  int new_y;
+  int new_x, new_y;
   // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
   for (int dog_index = 0; dog_index < DOG_COUNT; dog_index++) {
-    int x = dogs[dog_index].x;
-    int y = dogs[dog_index].y;
+    int x = dogs[dog_index].x, y = dogs[dog_index].y;
     for (int speed = 0; speed < dogs[dog_index].speed; speed++) {
       for (int i = 0; i < 5; i++)
       {
@@ -135,6 +132,7 @@ void dogRandomMove() {
           new_x = x - 1;
           break;
         }
+        // Fixing out hand bugs
         if (new_x < 0 || new_x >= BOARD_SIZE) new_x = x;
         if (new_y < 0 || new_y >= BOARD_SIZE) new_y = y;
         if (canMove(x, y, movement)) break;
@@ -148,52 +146,38 @@ void dogRandomMove() {
 }
 
 // Function for Cats to eat Chocolates and Fishes
-void eat(int x,int y,int cat_index) {
+void eat(int x, int y, int cat_index) {
   int current_home = map[y][x];
   // Eating Chocolate
-  if(hasFlag(current_home,FLAG_CHOCO)) {
+  if (hasFlag(current_home, FLAG_CHOCO)) {
     cats[cat_index].attackPoint += 1;
-    removeFlag(&map[y][x],FLAG_CHOCO);
+    removeFlag(&map[y][x], FLAG_CHOCO);
   }
   // Eating Fish
-  if(hasFlag(current_home,FLAG_FISH)) { 
+  if (hasFlag(current_home, FLAG_FISH)) {
     unsigned short int points;
-    for(int i=0;i<FISH_COUNT;i++) {
-      if(fishes[i].x == x && fishes[i].y ==y) {
+    for (int i = 0; i < FISH_COUNT; i++)
+      if (fishes[i].x == x && fishes[i].y == y) {
         points = fishes[i].points;
         cats[cat_index].defencePoint += points;
-        removeFlag(&map[y][x],FLAG_FISH);
+        removeFlag(&map[y][x], FLAG_FISH);
         REMAINING_FISHES--;
-        if(REMAINING_FISHES < CAT_COUNT) {
+        if (REMAINING_FISHES < CAT_COUNT) {
           clearFishes();
           __initFishes();
         }
       }
-    }
   }
   //Eating Mouse
-  if (hasFlag(current_home, FLAG_MOUSE)) {
-    for (int i = 0; i < MOUSE_COUNT; i++) {
+  if (hasFlag(current_home, FLAG_MOUSE))
+    for (int i = 0; i < MOUSE_COUNT; i++)
       if (mouses[i].x == x && mouses[i].y == y && mouses[i].points != INVALID_MOUSE_POINT) {
         unsigned short int mousePoints = mouses[i].points;
         cats[cat_index].mousePoint += mousePoints;
         mouses[i].points = INVALID_MOUSE_POINT;
         removeFlag(&map[y][x], FLAG_MOUSE);
       }
-    }
-    //-------
-  }
-  int mouse_counter = 0;
-  for (int i = 0; i < BOARD_SIZE; i++) {
-    for (int j = 0; j < BOARD_SIZE; j++) {
-      if (hasFlag(map[i][j], FLAG_MOUSE))
-        mouse_counter++;
-    }
-  }
-  printf("MOUSE COUNT: %d\n\n", mouse_counter);
-  //-----------
 }
-
 
 void mouseRandomMove() {
   int direction_number;
@@ -201,7 +185,7 @@ void mouseRandomMove() {
   int new_x;
   int new_y;
   // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
-  for (int mouse_index = 0; mouse_index < REMAINING_MOUSES; mouse_index++) {
+  for (int mouse_index = 0; mouse_index < MOUSE_COUNT; mouse_index++) {
     if (mouses[mouse_index].points == INVALID_MOUSE_POINT) continue;
     int x = mouses[mouse_index].x;
     int y = mouses[mouse_index].y;

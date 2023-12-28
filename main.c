@@ -10,60 +10,84 @@
 #include "logics/logics.h"
 #include <limits.h>
 
-void printEmptyBoard();       // print initialized map with walls but no player placed at squares
-char initializeDisplay();     // allegro display initialization and handling errors
-void printPlayers();          // print all of the players such as cat, dog, mouse, and more(except walls)
-void clearCats();             // to clear all cats locatio on board
-void printCats();             // for printing cats
-void clearDogs();             // clear previous dogs
-void printDogs();             // print new dogs
-void clearMouses();           // clear previous mouses
-void printMouses();           // print new mouses
-void printChocolatesAndFishes(); // print all cholates and fishes finally
-void nextPlayer();            // switch to the next player
-void indicatePlayer();        // indicate the current player in the playboard
-void printScoreBoard();       // a function to show side score board menu
-void clearSquare(int, int);   // clear the custom square to redifne new character
-void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main game loop
-void freeCache();    
-void finishBoard();         // free cache such as pictures and displays and fonts
-void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
-ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
-int currentPlayer = 0;        // as like as it's name stores the current player index
-int currentRound = 1;         // as like as it's name it stroes the current round information
-ALLEGRO_DISPLAY* display;     // as like as it's name stores the information about allegro display
-ALLEGRO_BITMAP* dogIcon[CAT_COUNT], * mouseIcon, * chocoIcon, * fishIcon;          // dog and mouse icon bitmap
-const short int k = SQUARE_SIZE + 2 * MARGIN; // a helpfull number to save the size of each box
+// a helpfull number to save the size of each box
+const short int k = SQUARE_SIZE + 2 * MARGIN; 
+// print initialized map with walls but no player placed at squares
+void printEmptyBoard();
+// allegro display initialization and handling errors
+char initializeDisplay();
+// print all of the players such as cat, dog, mouse, and more(except walls)
+void printPlayers();
+// to clear all cats locatio on board
+void clearCats();
+// for printing cats
+void printCats();
+// clear previous dogs
+void clearDogs();
+// print new dogs
+void printDogs();
+// clear previous mouses
+void clearMouses();
+// print new mouses
+void printMouses();
+// print all cholates and fishes finally
+void printChocolatesAndFishes();
+// switch to the next player
+void nextPlayer();
+// indicate the current player in the playboard
+void indicatePlayer();
+// a function to show side score board menu
+void printScoreBoard();
+// clear the custom square to redifne new character
+void clearSquare(int, int);
+// the main game loop
+void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT);
+// free cache such as pictures and displays and fonts
+void freeCache();
+// for finishing the game
+void finishBoard();
+// switches the current player location
+void moveCurrentPlayerOnBoard(int, int);
+// as like as it's name this is a main font configuration
+ALLEGRO_FONT* font;
+// as like as it's name stores the information about allegro display
+ALLEGRO_DISPLAY* display;
+// dog and mouse icon bitmap also chocos and fishes icon added
+ALLEGRO_BITMAP* dogIcon[CAT_COUNT], * mouseIcon, * chocoIcon, * fishIcon;
+// as like as it's name stores the current player index
+int currentPlayer = 0;
+// as like as it's name it stroes the current round information
+int currentRound = 1;
 
 int main() {
 	setMap();
 	__testMap();
-	{// ------- Handle Initializing Errs ---------------------------
-		switch (initializeDisplay()) {
-		case INIT_DISPLAY_ERR:
-			printf("display can not be initialized!\n");
-			return INIT_DISPLAY_ERR;
-		case INIT_DISPLAY_ALLEGRO_ERR:
-			printf("the allegro can not be initialized!\n");
-			return INIT_DISPLAY_ALLEGRO_ERR;
-		case INIT_DISPLAY_PRIMITIVES_ERR:
-			printf("can not to load the allegro_primitives library!\n");
-			return INIT_DISPLAY_PRIMITIVES_ERR;
-		case INIT_DISPLAY_FONT_ERR:
-			printf("can not run allegro font addon!\n");
-			return INIT_DISPLAY_FONT_ERR;
-		case INIT_DISPLAY_TRUETYPE_FONT_ERR:
-			printf("can not run allegro TrueType fonts!\n");
-			return INIT_DISPLAY_TRUETYPE_FONT_ERR;
-		case INIT_DISPLAY_FONT_NOT_FOUND_ERR:
-			printf("can not load the font file(\"/NotoSerif - Medium.ttf\")");
-			return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
-		case INIT_DISPLAY_IMG_NOT_FOUND:
-			printf("can not found/load the png files(\"mouseIcon.png or dogIcon.png\")");
-			return INIT_DISPLAY_IMG_NOT_FOUND;
-		}
-		// ------ End of Handling -------------------------------------
+	// ------- Handle Initializing Errs ---------------------------
+	switch (initializeDisplay()) {
+	case INIT_DISPLAY_ERR:
+		printf("display can not be initialized!\n");
+		return INIT_DISPLAY_ERR;
+	case INIT_DISPLAY_ALLEGRO_ERR:
+		printf("the allegro can not be initialized!\n");
+		return INIT_DISPLAY_ALLEGRO_ERR;
+	case INIT_DISPLAY_PRIMITIVES_ERR:
+		printf("can not to load the allegro_primitives library!\n");
+		return INIT_DISPLAY_PRIMITIVES_ERR;
+	case INIT_DISPLAY_FONT_ERR:
+		printf("can not run allegro font addon!\n");
+		return INIT_DISPLAY_FONT_ERR;
+	case INIT_DISPLAY_TRUETYPE_FONT_ERR:
+		printf("can not run allegro TrueType fonts!\n");
+		return INIT_DISPLAY_TRUETYPE_FONT_ERR;
+	case INIT_DISPLAY_FONT_NOT_FOUND_ERR:
+		printf("can not load the font file(\"/NotoSerif - Medium.ttf\")");
+		return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
+	case INIT_DISPLAY_IMG_NOT_FOUND:
+		printf("can not found/load the png files(\"mouseIcon.png or dogIcon.png\")");
+		return INIT_DISPLAY_IMG_NOT_FOUND;
 	}
+	// ------ End of Handling -------------------------------------
+
 	printEmptyBoard();
 	printPlayers();
 	indicatePlayer();
@@ -71,18 +95,24 @@ int main() {
 
 	al_flip_display(); // refresh the view
 
+	// set the allegro keyboard primitives
 	al_install_keyboard();
 	ALLEGRO_EVENT_QUEUE* ev_queue = al_create_event_queue();
 	al_register_event_source(ev_queue, al_get_display_event_source(display));
 	al_register_event_source(ev_queue, al_get_keyboard_event_source());
 	ALLEGRO_EVENT event;
 	// only for test this section , this is going to be changed as soon as possible
-	gameLoop(ev_queue, &event,NO_MOVE);
+	gameLoop(ev_queue, &event, NO_MOVE);
 	freeCache();
 	return 0;
 }
 
-// runs the main loop such as manage moving characters and moving items and choosing best player ...
+/// <summary>
+/// runs the main loop such as manage moving characters and moving items and choosing best player ...
+/// </summary>
+/// <param name="ev_queue">allegro event queue...</param>
+/// <param name="ev">the event storage</param>
+/// <param name="previous_move">this argumant prevents the backward move</param>
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT previous_move) {
 	//------- Check For Game Roundes -------
 	if(currentRound>15) finishBoard();
@@ -125,21 +155,23 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 			break;
 		}
 	}
-	// ---- REMOVE THIS SECTION ----
+	// ---- REMOVE THIS SECTION ---- Applied for linux...
 	printEmptyBoard();
-	//printPlayers();
 	printCats();
 	indicatePlayer();
-	printChocolatesAndFishes();
 	printDogs();
 	printMouses();
+	printChocolatesAndFishes();
 	printScoreBoard();
-	//------------------------------
+	// ---- end Remove this section ---
 	al_flip_display();
-	gameLoop(ev_queue, ev,NO_MOVE);
+	gameLoop(ev_queue, ev,NO_MOVE); // runs loop again
 }
 
-// -- init -- allegro display settings
+/// <summary>
+/// --- init -- the allegro window for drawing items
+/// </summary>
+/// <returns>the INIT_DISPLAY_* err</returns>
 char initializeDisplay() {
 	if (!al_init()) return INIT_DISPLAY_ALLEGRO_ERR;
 	display = al_create_display((SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE + SCORE_BOARD_WIDTH, (SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE);
@@ -164,7 +196,9 @@ char initializeDisplay() {
 	return INIT_DISPLAY_SUCCESS;
 }
 
-// free the cache before closing the window
+/// <summary>
+/// free the cache before closing the window
+/// </summary>
 void freeCache() {
 	for (int i = 0; i < CAT_COUNT; i++) 
 		al_destroy_bitmap(dogIcon[i]);
@@ -175,8 +209,10 @@ void freeCache() {
 	al_destroy_display(display);
 }
 
-// becuase this part of application needs many calculations. i have written unapproprietly!
-// this function can print the score board with its information
+/// <summary>
+/// this function can print the score board with its information.
+/// becuase this part of application needs many calculations. i have written unapproprietly!.
+/// </summary>
 void printScoreBoard() {
 	const int x = k * BOARD_SIZE; //the basic left offset
 	int h = al_get_font_line_height(font)*2;  //get the height of a line of text then multiply 2
@@ -204,7 +240,7 @@ void printScoreBoard() {
 	const float y = 9 * h / 5;
 	h = h * .8; // minimize h
 	char t[3];  // use a temp char array for saving the strings of items
-	for (int i = 0; i < CAT_COUNT; i++) {
+	for (int i = 0; i < CAT_COUNT; i++)
 		for (int j = 0; j < CAT_COUNT; j++) {
 			al_draw_filled_rectangle(x + i * w, y + j * h, x + (i + 1) * w, y + (j + 1) * h, COLOR2);
 			// use switch case for print the current column data
@@ -225,11 +261,12 @@ void printScoreBoard() {
 			al_draw_text(font,WHITE, x + (i + .5) * w, y + (j + .5) * h - 15, 
 				ALLEGRO_ALIGN_CENTER, t);
 		}
-	}
 }
 
-// print initialized map with walls but no player placed at squares
-// only prints the empty board not anything else
+/// <summary>
+/// print initialized map with walls but no player placed at squares. 
+/// only prints the empty board not anything else
+/// </summary>
 void printEmptyBoard() {
 	al_clear_to_color(WHITE);
 	for (int i = 0; i < BOARD_SIZE; i++) 
@@ -253,14 +290,21 @@ void printEmptyBoard() {
 		}
 }
 
-// draw a photo in given size this function can not helpful everywhere
+/// <summary>
+/// draw a photo in given size this function can not helpful everywhere!
+/// </summary>
+/// <param name="img">the image which you want to draw</param>
+/// <param name="x">the x coordinate of it's location</param>
+/// <param name="y">the y coordinate of it's location</param>
+/// <param name="w">the width and height of it's drawing</param>
 void __drawScaledPhoto(ALLEGRO_BITMAP* img, float x, float y, int w) {
 	al_draw_scaled_bitmap(img, 0, 0,
 		al_get_bitmap_width(img), al_get_bitmap_height(img), x, y, w, w, 0);
 }
 
-// print initial players only once
-// this function prints all types of models
+/// <summary>
+/// print initial players only once. this function prints all types of models
+/// </summary>
 void printPlayers() {
 	// ------ print ---- cat
 	float x = k * (cats[0].x + .25);
@@ -274,7 +318,9 @@ void printPlayers() {
 	printChocolatesAndFishes();
 }
 
-// this function is show that where is the current player's cat 
+/// <summary>
+/// this function is show that where is the current player's cat 
+/// </summary>
 void indicatePlayer() {
 	// define current player
 	CAT currentCat = cats[currentPlayer];
@@ -292,7 +338,9 @@ void indicatePlayer() {
 	}
 }
 
-// clear previous state of cats
+/// <summary>
+/// clear previous state of cats
+/// </summary>
 void clearCats() {
 	for (int i = 0; i < CAT_COUNT; i++) {
 		float x = cats[i].x * k + MARGIN;
@@ -301,10 +349,12 @@ void clearCats() {
 	}
 }
 
-// print new state of cats
+/// <summary>
+/// print new state of cats
+/// </summary>
 void printCats() {
 	float x, y;
-	for (int i = 0; i < CAT_COUNT; i++) {
+	for (int i = 0; i < CAT_COUNT; i++) 
 		if (cats[i].index) {
 			x = cats[i].x * k + ((cats[i].index % 2) ? k / 4 : 3 * k / 4); // solve x
 			y = cats[i].y * k + ((cats[i].index <= 2) ? k / 4 : 3 * k / 4); // solve y
@@ -315,30 +365,29 @@ void printCats() {
 			y = (cats[i].y + .5) * k;
 			al_draw_filled_circle(x, y, SQUARE_SIZE * .4, cats[i].color);
 		}
-	}
-	printChocolatesAndFishes();
 }
 
-// this complicated function allows you to move cats if that can move there
+/// <summary>
+/// this complicated function allows you to move cats if that can move there
+/// </summary>
+/// <param name="newX">the new x coordinate of current cat</param>
+/// <param name="newY">the new y coordinate of current cat</param>
 void moveCurrentPlayerOnBoard(int newX, int newY){
 	clearCats();
 	clearMouses();
 	eat(newX, newY, currentPlayer);
 	// reset old house by counting the previous items count
-	int countOvers = 0;
-	int indexes[CAT_COUNT];
+	int countOvers = 0, indexes[CAT_COUNT];
 	for (int i = 0; i < CAT_COUNT; i++)
 		if (cats[i].x == cats[currentPlayer].x && cats[i].y == cats[currentPlayer].y)
 			indexes[countOvers++] = i;
-	if (countOvers > 2) {
+	if (countOvers > 2) 
 		for (int i = 0,k=0; i < countOvers; i++) {
 			if (indexes[i] == currentPlayer)continue;
 			cats[indexes[i]].index = ++k;
 		}
-	} else {
-		for (int i = 0; i < countOvers; i++)
-			cats[indexes[i]].index = 0;
-	}
+	else for (int i = 0; i < countOvers; i++) // if count is greater than 2 pls...
+		cats[indexes[i]].index = 0;
 	if (countOvers == 1) // do this when there is no cat after move the cat
 		removeFlag(&map[cats[currentPlayer].y][cats[currentPlayer].x], FLAG_CAT);
 	// reset current player index if not reseted
@@ -354,13 +403,12 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 		addFlag(&map[newY][newX], FLAG_CAT); //set this house khown as cat house
 	cats[currentPlayer].x = newX;
 	cats[currentPlayer].y = newY;
-	
-	clearSquare(cats[currentPlayer].x, cats[currentPlayer].y);
-	printCats();
-	printChocolatesAndFishes();
+	clearSquare(cats[currentPlayer].x, cats[currentPlayer].y); // clear the previus location state
 }
 
-// clear the previous dog locations
+/// <summary>
+/// clear the previous dog locations
+/// </summary>
 void clearDogs() {
 	// ------ clear ---- dogs
 	for (int i = 0; i < DOG_COUNT; i++) {
@@ -371,7 +419,9 @@ void clearDogs() {
 	// ------ end clear --- dogs
 }
 
-// print new dogs location
+/// <summary>
+/// print current dogs on graphic
+/// </summary>
 void printDogs() {
 	// ------ print ---- dogs
 	for (int i = 0; i < DOG_COUNT; i++) {
@@ -382,7 +432,9 @@ void printDogs() {
 	// ------ endPrint - dogs
 }
 
-// clear previous mouses
+/// <summary>
+/// clear current mouses
+/// </summary>
 void clearMouses() {
 	// ------ clear ---- mouses
 	for (int i = 0; i < MOUSE_COUNT; i++) {
@@ -393,61 +445,67 @@ void clearMouses() {
 	// ------ end clear ---- mouses
 }
 
-// print new mouses
+/// <summary>
+/// print new mouses
+/// </summary>
 void printMouses(){
 	// ------ print ---- mouses
-	for (int i = 0; i < MOUSE_COUNT; i++) {
+	for (int i = 0; i < MOUSE_COUNT; i++) 
 		if (mouses[i].points != INVALID_MOUSE_POINT) {
 			float x = k * mouses[i].x + MARGIN + .15 * SQUARE_SIZE;
 			float y = k * mouses[i].y + MARGIN;
 			__drawScaledPhoto(mouseIcon, x, y, .7 * SQUARE_SIZE);
 		}
-	}
 	// ------ endPrint - mouses
 }
 
-// print chocolates and fishes
-// use this function after doing a legal or illegal movement
+/// <summary>
+/// print chocolates and fishes
+/// use this function after doing a legal or illegal movement
+/// </summary>
 void printChocolatesAndFishes() {
-	for (int i = 0; i < BOARD_SIZE; i++) {
+	float x, y;
+	for (int i = 0; i < BOARD_SIZE; i++) 
 		for (int j = 0; j < BOARD_SIZE; j++) {
 			if (hasFlag(map[j][i], FLAG_CHOCO)) {
-				float x = i * k + MARGIN + .5 * SQUARE_SIZE;
-				float y = j * k + MARGIN + .5 * SQUARE_SIZE;
+				x = i * k + MARGIN + .5 * SQUARE_SIZE;
+				y = j * k + MARGIN + .5 * SQUARE_SIZE;
 				__drawScaledPhoto(chocoIcon, x, y, .5 * SQUARE_SIZE);
 			}
 			if (hasFlag(map[j][i], FLAG_FISH)) {
-				float x = i * k + MARGIN;
-				float y = j * k + MARGIN + .5 * SQUARE_SIZE;
+				x = i * k + MARGIN;
+				y = j * k + MARGIN + .5 * SQUARE_SIZE;
 				__drawScaledPhoto(fishIcon, x, y, .5 * SQUARE_SIZE);
 			}
 		}
-	}
 }
 
-// the x and y of fish and choco the remove the previous items
+/// <summary>
+/// clears the previous state graphics
+/// </summary>
+/// <param name="x">x of Square on board</param>
+/// <param name="y">y of Square on board</param>
 void clearSquare(int x, int y) {
 	al_draw_filled_rectangle(x * k + MARGIN, y * k + MARGIN, x * k + MARGIN + SQUARE_SIZE, y * k + MARGIN + SQUARE_SIZE, COLOR4);
 }
 
 
-// get the next player and then indicate that
+/// <summary>
+/// get the next player and then indicate that
+/// </summary>
 void nextPlayer() {
 	if (currentPlayer == CAT_COUNT - 1) {
 		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 		currentRound++;
 		clearDogs();
 		dogRandomMove();
-		printDogs();
 		mouseRandomMove();
-		printCats();
-	} else{ 
-		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
-	}
-	printMouses();
-	printChocolatesAndFishes();
-	printScoreBoard();
-	indicatePlayer();
+	} else currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 }
 
-void finishBoard() {exit(0);}
+/// <summary>
+/// a function to handle the exit process
+/// </summary>
+void finishBoard() {
+	exit(0);
+}
