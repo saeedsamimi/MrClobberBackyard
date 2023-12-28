@@ -128,6 +128,16 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 			break;
 		}
 	}
+	// ---- REMOVE THIS SECTION ----
+	printEmptyBoard();
+	//printPlayers();
+	printCats();
+	indicatePlayer();
+	printChocolatesAndFishes();
+	printDogs();
+	printMouses();
+	printScoreBoard();
+	//------------------------------
 	al_flip_display();
 	gameLoop(ev_queue, ev,NO_MOVE);
 }

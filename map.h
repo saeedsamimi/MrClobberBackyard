@@ -146,7 +146,6 @@ void __generateRandomMap() {
 			mouses[k].y = j + rand() % 5;
 			if (!map[mouses[k].y][mouses[k].x]) {
 				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
-				mouses[k].points = 3; // CHANGE THIS To DYNAMICLLY GENERATE POINTS
 				break;
 			}
 		} while (1);
@@ -162,6 +161,11 @@ void __generateRandomMap() {
 				break;
 			}
 		} while (1);
+	}
+	// Set Points for Mouses 
+	srand(rand() - time(NULL));
+	for(int i=0;i<MOUSE_COUNT;i++) {
+		mouses[i].points = rand() % (3) + 1;
 	}
 	// ---- init --- chocos
 	// quarter top left

@@ -6,7 +6,7 @@
 #include <time.h>
 
 unsigned short int REMAINING_FISHES = FISH_COUNT;
-
+unsigned short int REMAINING_MOUSES = MOUSE_COUNT;
 int canMove(int,int,enum MOVEMENT);
 void dogRandomMove();
 void eat(int, int, int);
@@ -150,11 +150,13 @@ void dogRandomMove() {
 // Function for Cats to eat Chocolates and Fishes
 void eat(int x,int y,int cat_index) {
   int current_home = map[y][x];
+  // Eating Chocolate
   if(hasFlag(current_home,FLAG_CHOCO)) {
     cats[cat_index].attackPoint += 1;
     removeFlag(&map[y][x],FLAG_CHOCO);
   }
-  if(hasFlag(current_home,FLAG_FISH)) {
+  // Eating Fish
+  if(hasFlag(current_home,FLAG_FISH)) { 
     unsigned short int points;
     for(int i=0;i<FISH_COUNT;i++) {
       if(fishes[i].x == x && fishes[i].y ==y) {
@@ -169,6 +171,27 @@ void eat(int x,int y,int cat_index) {
       }
     }
   }
+  //Eating Mouse
+  if(hasFlag(current_home,FLAG_MOUSE)) {
+    printf("WE GOT A MOUSE!\n");
+    for(int i=0;i<MOUSE_COUNT;i++) {
+      if(mouses[i].x == x && mouses[i].y ==y) {
+        unsigned short int mousePoints = mouses[i].points;
+        cats[cat_index].mousePoint = mousePoints;
+        removeFlag(&map[y][x],FLAG_MOUSE);
+        REMAINING_MOUSES--;
+      }
+    }
+    /*//-------
+    int mouse_counter = 0;
+    for(int i=0;i<MOUSE_COUNT;i++) {
+      for(int j=0;j<MOUSE_COUNT;i++) {
+        if(hasFlag(map[i][j],FLAG_MOUSE)) mouse_counter++;
+      }
+    }
+    printf("MOUSE COUNT: %d\n\n",mouse_counter);
+    //-----------*/
+  }
 }
 
 
@@ -179,7 +202,7 @@ void mouseRandomMove() {
     int new_y;
     srand(rand() - time(NULL));
     // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
-    for(int mouse_index = 0; mouse_index< MOUSE_COUNT;mouse_index++) {
+    for(int mouse_index = 0; mouse_index< REMAINING_MOUSES;mouse_index++) {
         int x = mouses[mouse_index].x;
         int y = mouses[mouse_index].y;
         for(int points=0;points<mouses[mouse_index].points;points++) {
