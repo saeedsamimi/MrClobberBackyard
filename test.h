@@ -13,3 +13,9 @@ void __testMap() {
     printf("\n");
   }
 }
+
+void __testMouses() {
+  for (int i = 0; i < MOUSE_COUNT; i++) {
+    printf("\nThe mouse(%d) at (%d,%d).", i + 1, mouses[i].x, mouses[i].y);
+  }
+}

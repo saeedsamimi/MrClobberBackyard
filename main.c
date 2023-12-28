@@ -24,8 +24,9 @@ void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main game loop
-void freeCache();    
-void finishBoard();         // free cache such as pictures and displays and fonts
+void freeCache();             // free cache such as pictures and displays and fonts
+void clearSquare(int, int);   // clear the custom square to redifne new character
+void finishBoard();           // finish the game
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
 int currentPlayer = 0;        // as like as it's name stores the current player index
@@ -94,7 +95,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_LEFT:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
-				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
@@ -103,7 +103,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_RIGHT:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
-				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
@@ -112,7 +111,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_UP:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
-				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
@@ -121,7 +119,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_DOWN:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
-				eat(cats[currentPlayer].x,cats[currentPlayer].y,currentPlayer);
 				nextPlayer();
 			}
 			__testMap();
@@ -345,7 +342,15 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 		addFlag(&map[newY][newX], FLAG_CAT); //set this house khown as cat house
 	cats[currentPlayer].x = newX;
 	cats[currentPlayer].y = newY;
+	eat(cats[currentPlayer].x, cats[currentPlayer].y, currentPlayer);
+	clearSquare(cats[currentPlayer].x, cats[currentPlayer].y);
 	printCats();
+	printChocolatesAndFishes();
+}
+
+// the x and y of fish and choco the remove the previous items
+void clearSquare(int x,int y) {
+	al_draw_filled_rectangle(x * k + MARGIN, y * k + MARGIN, x * k + MARGIN + SQUARE_SIZE, y * k + MARGIN + SQUARE_SIZE,COLOR4);
 }
 
 // clear the previous dog locations
@@ -424,7 +429,6 @@ void nextPlayer() {
 		mouseRandomMove();
 		printMouses();
 		printCats();
-		
 		printChocolatesAndFishes();
 	} else{ 
 		currentPlayer = (currentPlayer + 1) % CAT_COUNT;

@@ -159,10 +159,12 @@ void __generateRandomMap() {
 			mouses[k].y = rand() % BOARD_SIZE;
 			if (!map[mouses[k].y][mouses[k].x]) {
 				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
+				mouses[k].points = 3; // CHANGE THIS To DYNAMICLLY GENERATE POINTS // added(forgoted)
 				break;
 			}
 		} while (1);
 	}
+	// ---- end init --- mouses
 	// ---- init --- chocos
 	// quarter top left
 	const int slice = BOARD_SIZE / 2;
