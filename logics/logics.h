@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "../map.h"
 #include <time.h>
+#include "random.h"
 
 unsigned short int REMAINING_FISHES = FISH_COUNT;
 unsigned short int REMAINING_MOUSES = MOUSE_COUNT;
@@ -101,7 +102,6 @@ void dogRandomMove() {
   enum MOVEMENT movement;
   int new_x;
   int new_y;
-  srand(rand() - time(NULL));
   // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
   for (int dog_index = 0; dog_index < DOG_COUNT; dog_index++) {
     int x = dogs[dog_index].x;
@@ -111,7 +111,7 @@ void dogRandomMove() {
       {
         new_x = x;
         new_y = y;
-        direction_number = (rand() % (4)) + 1;
+        direction_number = random(4) + 1;
         switch (direction_number)
         {
         case 1:
@@ -200,7 +200,6 @@ void mouseRandomMove() {
   enum MOVEMENT movement = NO_MOVE;
   int new_x;
   int new_y;
-  srand(rand() - time(NULL));
   // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
   for (int mouse_index = 0; mouse_index < REMAINING_MOUSES; mouse_index++) {
     if (mouses[mouse_index].points == INVALID_MOUSE_POINT) continue;
@@ -211,7 +210,7 @@ void mouseRandomMove() {
       {
         new_x = x;
         new_y = y;
-        direction_number = (rand() % (8)) + 1;
+        direction_number = random(8) + 1;
         switch (direction_number)
         {
         case 1:
