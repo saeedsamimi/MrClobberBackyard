@@ -23,10 +23,10 @@ void printChocolatesAndFishes(); // print all cholates and fishes finally
 void nextPlayer();            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
-void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main game loop
-void freeCache();             // free cache such as pictures and displays and fonts
 void clearSquare(int, int);   // clear the custom square to redifne new character
-void finishBoard();           // finish the game
+void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main game loop
+void freeCache();    
+void finishBoard();         // free cache such as pictures and displays and fonts
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
 int currentPlayer = 0;        // as like as it's name stores the current player index
@@ -125,6 +125,16 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 			break;
 		}
 	}
+	// ---- REMOVE THIS SECTION ----
+	printEmptyBoard();
+	//printPlayers();
+	printCats();
+	indicatePlayer();
+	printChocolatesAndFishes();
+	printDogs();
+	printMouses();
+	printScoreBoard();
+	//------------------------------
 	al_flip_display();
 	gameLoop(ev_queue, ev,NO_MOVE);
 }
@@ -312,6 +322,8 @@ void printCats() {
 // this complicated function allows you to move cats if that can move there
 void moveCurrentPlayerOnBoard(int newX, int newY){
 	clearCats();
+	clearMouses();
+	eat(newX, newY, currentPlayer);
 	// reset old house by counting the previous items count
 	int countOvers = 0;
 	int indexes[CAT_COUNT];
@@ -342,15 +354,10 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 		addFlag(&map[newY][newX], FLAG_CAT); //set this house khown as cat house
 	cats[currentPlayer].x = newX;
 	cats[currentPlayer].y = newY;
-	eat(cats[currentPlayer].x, cats[currentPlayer].y, currentPlayer);
+	
 	clearSquare(cats[currentPlayer].x, cats[currentPlayer].y);
 	printCats();
 	printChocolatesAndFishes();
-}
-
-// the x and y of fish and choco the remove the previous items
-void clearSquare(int x,int y) {
-	al_draw_filled_rectangle(x * k + MARGIN, y * k + MARGIN, x * k + MARGIN + SQUARE_SIZE, y * k + MARGIN + SQUARE_SIZE,COLOR4);
 }
 
 // clear the previous dog locations
@@ -390,9 +397,11 @@ void clearMouses() {
 void printMouses(){
 	// ------ print ---- mouses
 	for (int i = 0; i < MOUSE_COUNT; i++) {
-		float x = k * mouses[i].x + MARGIN + .15 * SQUARE_SIZE;
-		float y = k * mouses[i].y + MARGIN;
-		__drawScaledPhoto(mouseIcon, x, y, .7 * SQUARE_SIZE);
+		if (mouses[i].points != INVALID_MOUSE_POINT) {
+			float x = k * mouses[i].x + MARGIN + .15 * SQUARE_SIZE;
+			float y = k * mouses[i].y + MARGIN;
+			__drawScaledPhoto(mouseIcon, x, y, .7 * SQUARE_SIZE);
+		}
 	}
 	// ------ endPrint - mouses
 }
@@ -416,6 +425,11 @@ void printChocolatesAndFishes() {
 	}
 }
 
+// the x and y of fish and choco the remove the previous items
+void clearSquare(int x, int y) {
+	al_draw_filled_rectangle(x * k + MARGIN, y * k + MARGIN, x * k + MARGIN + SQUARE_SIZE, y * k + MARGIN + SQUARE_SIZE, COLOR4);
+}
+
 
 // get the next player and then indicate that
 void nextPlayer() {
@@ -425,14 +439,13 @@ void nextPlayer() {
 		clearDogs();
 		dogRandomMove();
 		printDogs();
-		clearMouses();
 		mouseRandomMove();
-		printMouses();
 		printCats();
-		printChocolatesAndFishes();
 	} else{ 
 		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 	}
+	printMouses();
+	printChocolatesAndFishes();
 	printScoreBoard();
 	indicatePlayer();
 }

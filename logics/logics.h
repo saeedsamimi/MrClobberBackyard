@@ -6,18 +6,17 @@
 #include <time.h>
 
 unsigned short int REMAINING_FISHES = FISH_COUNT;
-
+unsigned short int REMAINING_MOUSES = MOUSE_COUNT;
 int canMove(int,int,enum MOVEMENT);
 void dogRandomMove();
 void eat(int, int, int);
 void mouseRandomMove();
-int random(int);
 
 int canMove(int x, int y, enum MOVEMENT move) {
   int currentPos = map[y][x];
   int nextPos = -1;
-  int new_x = x;
-  int new_y = y;
+  int new_x =x ;
+  int new_y =y;
   enum CHARACTER_TYPE current_character = NO_CHARACTER;
   enum CHARACTER_TYPE nextPos_character = NO_CHARACTER;
   // Define next Position and Check for walls and Borders
@@ -102,6 +101,7 @@ void dogRandomMove() {
   enum MOVEMENT movement;
   int new_x;
   int new_y;
+  srand(rand() - time(NULL));
   // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
   for (int dog_index = 0; dog_index < DOG_COUNT; dog_index++) {
     int x = dogs[dog_index].x;
@@ -111,7 +111,7 @@ void dogRandomMove() {
       {
         new_x = x;
         new_y = y;
-        direction_number = random(4) + 1;
+        direction_number = (rand() % (4)) + 1;
         switch (direction_number)
         {
         case 1:
@@ -148,27 +148,50 @@ void dogRandomMove() {
 }
 
 // Function for Cats to eat Chocolates and Fishes
-void eat(int x, int y, int cat_index) {
+void eat(int x,int y,int cat_index) {
   int current_home = map[y][x];
-  if (hasFlag(current_home, FLAG_CHOCO)) {
+  // Eating Chocolate
+  if(hasFlag(current_home,FLAG_CHOCO)) {
     cats[cat_index].attackPoint += 1;
-    removeFlag(&map[y][x], FLAG_CHOCO);
+    removeFlag(&map[y][x],FLAG_CHOCO);
   }
-  if (hasFlag(current_home, FLAG_FISH)) {
+  // Eating Fish
+  if(hasFlag(current_home,FLAG_FISH)) { 
     unsigned short int points;
-    for (int i = 0; i < FISH_COUNT; i++) {
-      if (fishes[i].x == x && fishes[i].y == y) {
+    for(int i=0;i<FISH_COUNT;i++) {
+      if(fishes[i].x == x && fishes[i].y ==y) {
         points = fishes[i].points;
         cats[cat_index].defencePoint += points;
-        removeFlag(&map[y][x], FLAG_FISH);
+        removeFlag(&map[y][x],FLAG_FISH);
         REMAINING_FISHES--;
-        if (REMAINING_FISHES < CAT_COUNT) {
+        if(REMAINING_FISHES < CAT_COUNT) {
           clearFishes();
           __initFishes();
         }
       }
     }
   }
+  //Eating Mouse
+  if (hasFlag(current_home, FLAG_MOUSE)) {
+    for (int i = 0; i < MOUSE_COUNT; i++) {
+      if (mouses[i].x == x && mouses[i].y == y && mouses[i].points != INVALID_MOUSE_POINT) {
+        unsigned short int mousePoints = mouses[i].points;
+        cats[cat_index].mousePoint += mousePoints;
+        mouses[i].points = INVALID_MOUSE_POINT;
+        removeFlag(&map[y][x], FLAG_MOUSE);
+      }
+    }
+    //-------
+  }
+  int mouse_counter = 0;
+  for (int i = 0; i < BOARD_SIZE; i++) {
+    for (int j = 0; j < BOARD_SIZE; j++) {
+      if (hasFlag(map[i][j], FLAG_MOUSE))
+        mouse_counter++;
+    }
+  }
+  printf("MOUSE COUNT: %d\n\n", mouse_counter);
+  //-----------
 }
 
 
@@ -177,8 +200,10 @@ void mouseRandomMove() {
   enum MOVEMENT movement = NO_MOVE;
   int new_x;
   int new_y;
+  srand(rand() - time(NULL));
   // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
-  for (int mouse_index = 0; mouse_index < MOUSE_COUNT; mouse_index++) {
+  for (int mouse_index = 0; mouse_index < REMAINING_MOUSES; mouse_index++) {
+    if (mouses[mouse_index].points == INVALID_MOUSE_POINT) continue;
     int x = mouses[mouse_index].x;
     int y = mouses[mouse_index].y;
     for (int points = 0; points < mouses[mouse_index].points; points++) {
@@ -186,7 +211,7 @@ void mouseRandomMove() {
       {
         new_x = x;
         new_y = y;
-        direction_number = random(8) + 1;
+        direction_number = (rand() % (8)) + 1;
         switch (direction_number)
         {
         case 1:
@@ -246,17 +271,4 @@ void mouseRandomMove() {
     mouses[mouse_index].x = new_x;
     mouses[mouse_index].y = new_y;
   }
-  __testMouses();
-}
-
-// maximum < 10 -> 0 -- 9
-int random(int maximum) {
-  static int temp = 0;
-  if (temp == 0) {
-    srand(rand() - time(NULL));
-    temp = rand();
-  }
-  int r = temp % maximum;
-  temp /= maximum;
-  return r;
 }

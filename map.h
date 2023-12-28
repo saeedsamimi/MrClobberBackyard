@@ -146,7 +146,6 @@ void __generateRandomMap() {
 			mouses[k].y = j + rand() % 5;
 			if (!map[mouses[k].y][mouses[k].x]) {
 				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
-				mouses[k].points = 3; // CHANGE THIS To DYNAMICLLY GENERATE POINTS
 				break;
 			}
 		} while (1);
@@ -159,12 +158,15 @@ void __generateRandomMap() {
 			mouses[k].y = rand() % BOARD_SIZE;
 			if (!map[mouses[k].y][mouses[k].x]) {
 				map[mouses[k].y][mouses[k].x] = FLAG_MOUSE;
-				mouses[k].points = 3; // CHANGE THIS To DYNAMICLLY GENERATE POINTS // added(forgoted)
 				break;
 			}
 		} while (1);
 	}
-	// ---- end init --- mouses
+	// Set Points for Mouses 
+	srand(rand() - time(NULL));
+	for(int i=0;i<MOUSE_COUNT;i++) {
+		mouses[i].points = rand() % 3 + 1;
+	}
 	// ---- init --- chocos
 	// quarter top left
 	const int slice = BOARD_SIZE / 2;
@@ -251,7 +253,7 @@ void __generateRandomWalls() {
 void clearFishes() {
 	const short int k = SQUARE_SIZE + 2 * MARGIN; // a helpfull number to save the size of each box
 	// ------ clear ---- mouses
-	for (int i = 0; i < MOUSE_COUNT; i++) {
+	for (int i = 0; i < FISH_COUNT; i++) {
 		float x = fishes[i].x * k + MARGIN;
 		float y = fishes[i].y * k + MARGIN;
 		al_draw_filled_rectangle(x, y, x + SQUARE_SIZE, y + SQUARE_SIZE, COLOR4);
