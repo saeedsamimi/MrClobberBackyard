@@ -23,6 +23,7 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
 #define INIT_DISPLAY_IMAGE_ADDON_ERR 7
 #define INIT_DISPLAY_IMG_NOT_FOUND 8
 #define INVALID_MOUSE_POINT 1000
+#define REMOVED_DOG 1000
 
 #define FLAG_CAT   1<<0
 #define FLAG_DOG   1<<1
@@ -40,6 +41,7 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
 #define WALL_COUNT 18
 #define CHOCO_COUNT 8
 #define FISH_COUNT 10
+#define ROUNDS_NUMBER 15
  
 typedef struct {
 	unsigned short int x, y;
@@ -49,6 +51,8 @@ typedef struct {
 	char state, index;
 	unsigned short int x, y;
 	unsigned short int attackPoint, defencePoint, mousePoint;
+	int freeze;
+	int mice_count;
 	ALLEGRO_COLOR color;
 } CAT;
 typedef struct {

@@ -85,7 +85,7 @@ int main() {
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT previous_move) {
 	//------- Check For Game Roundes -------
-	if(currentRound>15) finishBoard();
+	if(currentRound>ROUNDS_NUMBER) finishBoard();
 	al_wait_for_event(ev_queue, ev);
 	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
@@ -305,6 +305,9 @@ void clearCats() {
 void printCats() {
 	float x, y;
 	for (int i = 0; i < CAT_COUNT; i++) {
+		// Eat Mouses at current position
+		eat(cats[i].x,cats[i].y,i);
+		//-------------------------------
 		if (cats[i].index) {
 			x = cats[i].x * k + ((cats[i].index % 2) ? k / 4 : 3 * k / 4); // solve x
 			y = cats[i].y * k + ((cats[i].index <= 2) ? k / 4 : 3 * k / 4); // solve y
@@ -321,43 +324,49 @@ void printCats() {
 
 // this complicated function allows you to move cats if that can move there
 void moveCurrentPlayerOnBoard(int newX, int newY){
-	clearCats();
-	clearMouses();
-	eat(newX, newY, currentPlayer);
-	// reset old house by counting the previous items count
-	int countOvers = 0;
-	int indexes[CAT_COUNT];
-	for (int i = 0; i < CAT_COUNT; i++)
-		if (cats[i].x == cats[currentPlayer].x && cats[i].y == cats[currentPlayer].y)
-			indexes[countOvers++] = i;
-	if (countOvers > 2) {
-		for (int i = 0,k=0; i < countOvers; i++) {
-			if (indexes[i] == currentPlayer)continue;
-			cats[indexes[i]].index = ++k;
+	if(cats[currentPlayer].freeze >=0) {
+		clearCats();
+		clearMouses();
+		eat(newX, newY, currentPlayer);
+		fight(newX,newY,0,currentPlayer);
+		// reset old house by counting the previous items count
+		int countOvers = 0;
+		int indexes[CAT_COUNT];
+		for (int i = 0; i < CAT_COUNT; i++)
+			if (cats[i].x == cats[currentPlayer].x && cats[i].y == cats[currentPlayer].y)
+				indexes[countOvers++] = i;
+		if (countOvers > 2) {
+			for (int i = 0,k=0; i < countOvers; i++) {
+				if (indexes[i] == currentPlayer)continue;
+				cats[indexes[i]].index = ++k;
+			}
+		} else {
+			for (int i = 0; i < countOvers; i++)
+				cats[indexes[i]].index = 0;
 		}
+		if (countOvers == 1) // do this when there is no cat after move the cat
+			removeFlag(&map[cats[currentPlayer].y][cats[currentPlayer].x], FLAG_CAT);
+		// reset current player index if not reseted
+		cats[currentPlayer].index = 0;
+		// check new house before travel to it
+		countOvers = 0;
+		for (int i = 0; i < CAT_COUNT; i++)
+			if (cats[i].x == newX && cats[i].y == newY)
+				indexes[countOvers++] = i;
+		if (countOvers == 1) cats[indexes[0]].index = 1;
+		cats[currentPlayer].index = countOvers ? countOvers + 1 : 0; // count overs is not zero let c+1 else zero
+		if (!countOvers) 
+			addFlag(&map[newY][newX], FLAG_CAT); //set this house khown as cat house
+		cats[currentPlayer].x = newX;
+		cats[currentPlayer].y = newY;
+		
+		clearSquare(cats[currentPlayer].x, cats[currentPlayer].y);
+		printCats();
+		printChocolatesAndFishes();
 	} else {
-		for (int i = 0; i < countOvers; i++)
-			cats[indexes[i]].index = 0;
+		nextPlayer();
+		indicatePlayer();
 	}
-	if (countOvers == 1) // do this when there is no cat after move the cat
-		removeFlag(&map[cats[currentPlayer].y][cats[currentPlayer].x], FLAG_CAT);
-	// reset current player index if not reseted
-	cats[currentPlayer].index = 0;
-	// check new house before travel to it
-	countOvers = 0;
-	for (int i = 0; i < CAT_COUNT; i++)
-		if (cats[i].x == newX && cats[i].y == newY)
-			indexes[countOvers++] = i;
-	if (countOvers == 1) cats[indexes[0]].index = 1;
-	cats[currentPlayer].index = countOvers ? countOvers + 1 : 0; // count overs is not zero let c+1 else zero
-	if (!countOvers) 
-		addFlag(&map[newY][newX], FLAG_CAT); //set this house khown as cat house
-	cats[currentPlayer].x = newX;
-	cats[currentPlayer].y = newY;
-	
-	clearSquare(cats[currentPlayer].x, cats[currentPlayer].y);
-	printCats();
-	printChocolatesAndFishes();
 }
 
 // clear the previous dog locations
@@ -375,9 +384,11 @@ void clearDogs() {
 void printDogs() {
 	// ------ print ---- dogs
 	for (int i = 0; i < DOG_COUNT; i++) {
-		float x = k * dogs[i].x + MARGIN + .15 * SQUARE_SIZE;
-		float y = k * dogs[i].y + MARGIN;
-		__drawScaledPhoto(dogIcon[i], x, y, .7 * SQUARE_SIZE);
+		if(dogs[i].x != REMOVED_DOG && dogs[i].y != REMOVED_DOG) {
+			float x = k * dogs[i].x + MARGIN + .15 * SQUARE_SIZE;
+			float y = k * dogs[i].y + MARGIN;
+			__drawScaledPhoto(dogIcon[i], x, y, .7 * SQUARE_SIZE);
+		}
 	}
 	// ------ endPrint - dogs
 }
@@ -434,6 +445,14 @@ void clearSquare(int x, int y) {
 // get the next player and then indicate that
 void nextPlayer() {
 	if (currentPlayer == CAT_COUNT - 1) {
+		// Add Defence Point to add players one unit
+		for(int cat_index=0;cat_index<CAT_COUNT;cat_index++) {
+			if(cats[cat_index].freeze >= 0) {
+				cats[cat_index].defencePoint++;
+			} else {printf("CAT AT %d,%d IS FREEZE AND BE RELEAZED AT %d ROUNDS\n",cats[cat_index].x,cats[cat_index].y, (-1 * cats[cat_index].freeze) );}
+			cats[cat_index].freeze++;
+		}
+		//------------------------------------------
 		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
 		currentRound++;
 		clearDogs();

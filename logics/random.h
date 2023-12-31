@@ -1,9 +1,9 @@
-#pragma onc
+#pragma once
 #include <stdlib.h>
 #include <time.h>
 
 // maximum < 10 -> 0 -- 9
-int random(int maximum) {
+int random_function(int maximum) {
 	static int temp = 0;
 	if (temp == 0) {
 		srand(rand() - time(NULL));

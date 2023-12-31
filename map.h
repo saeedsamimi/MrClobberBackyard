@@ -122,6 +122,24 @@ void __generateRandomMap() {
 			}
 		} while (1);
 	}
+	// set dog speed and defence & attack
+	// Shepherd - dog1.png
+	dogs[0].speed = 3;
+	dogs[0].attackPoint = 2;
+	dogs[0].defencePoint = 20;
+	// Bulldog Junior - dog2.png
+	dogs[1].speed = 1;
+	dogs[1].defencePoint = 5;
+	dogs[1].attackPoint = 1;
+	// Pitbull - dog3.png
+	dogs[2].speed = 2;
+	dogs[2].defencePoint = 15;
+	dogs[2].attackPoint = 2;
+	// Bulldog - dog4.png
+	dogs[3].speed = 5;
+	dogs[3].defencePoint = 30;
+	dogs[3].attackPoint = 5;
+	
 	// ---- init -- cats and place all of them in a one place
 	{
 		CAT t;
@@ -132,7 +150,12 @@ void __generateRandomMap() {
 		t.x = BOARD_SIZE / 2;
 		t.y = BOARD_SIZE / 2;
 		// set overlaping z-index for all cats
-		for (i = 0; i < CAT_COUNT; i++) t.index = i + 1, cats[i] = t;
+		for (i = 0; i < CAT_COUNT; i++){
+			t.index = i + 1;
+			cats[i] = t;
+			cats[i].freeze = 0;
+			cats[i].mice_count = 0;
+		}
 		cats[0].color = BLUE;
 		cats[1].color = GREEN;
 		cats[2].color = RED;
@@ -266,3 +289,4 @@ void setMap() {
 	__generateRandomMap();
 	__generateRandomWalls();
 }
+
