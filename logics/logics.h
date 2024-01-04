@@ -14,6 +14,7 @@ void eat(int, int, int);
 void mouseRandomMove();
 
 int canMove(int x, int y, enum MOVEMENT move) {
+  if(x>BOARD_SIZE || y>BOARD_SIZE) return 0;
   int currentPos = map[y][x];
   int nextPos = -1;
   int new_x =x ;
@@ -107,6 +108,7 @@ void dogRandomMove() {
   for (int dog_index = 0; dog_index < DOG_COUNT; dog_index++) {
     int x = dogs[dog_index].x;
     int y = dogs[dog_index].y;
+    if(x > BOARD_SIZE || y>BOARD_SIZE) continue;
     for (int speed = 0; speed < dogs[dog_index].speed; speed++) {
       for (int i = 0; i < 5; i++)
       {
@@ -305,9 +307,6 @@ void mouseRandomMove() {
 }
 
 
-
-
-
 /// @brief Fight Function for Cats and Dogs
 /// @param x x coordinate of Cat or Dog
 /// @param y y Coordinate of Cat or Dog
@@ -367,46 +366,48 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
       int fighting_cat_index = 0;
       // Find Fighting cat
       for(int cat_index = 0;cat_index<CAT_COUNT;cat_index++) {
-        if(cats[cat_index].x == x && cats[cat_index].y == y) {
+        if(cats[cat_index].x == x && cats[cat_index].y == y && cats[cat_index].freeze>=0) {
           fighting_cat = cats[cat_index];
           fighting_cat_index = cat_index;
           break;
         }
       }
-      // Calculate points
-      int curretCatPoint = cats[index].attackPoint * cats[index].defencePoint;
-      int fightingCatPoint = fighting_cat.attackPoint * fighting_cat.defencePoint;
-      printf("CURRENT CAT POINT: %d\nFIGHTING CAT POINT : %d\n",curretCatPoint,fightingCatPoint);
-      if(curretCatPoint >= fightingCatPoint) {
-        printf("CURRENT CAT WINS");
-        // Current Player is winner
-        // Freeze fighting Cat
-        fighting_cat.freeze = -3;
-        // Getting fighting cat mice
-        cats[index].mice_count += fighting_cat.mice_count;
-        fighting_cat.mice_count = 0;
-        cats[index].mousePoint += fighting_cat.mousePoint;
-        fighting_cat.mousePoint = 0;
-        // reducing power
-        fighting_cat.attackPoint = 2;
-        fighting_cat.defencePoint = 5;
-        cats[index].defencePoint -= (fighting_cat.defencePoint / cats[index].defencePoint) * fighting_cat.attackPoint;
+      if(fighting_cat.freeze >= 0) {
+        // Calculate points
+        int curretCatPoint = cats[index].attackPoint * cats[index].defencePoint;
+        int fightingCatPoint = fighting_cat.attackPoint * fighting_cat.defencePoint;
+        printf("CURRENT CAT POINT: %d\nFIGHTING CAT POINT : %d\n",curretCatPoint,fightingCatPoint);
+        if(curretCatPoint >= fightingCatPoint) {
+          printf("CURRENT CAT WINS");
+          // Current Player is winner
+          // Freeze fighting Cat
+          fighting_cat.freeze = -3;
+          // Getting fighting cat mice
+          cats[index].mice_count += fighting_cat.mice_count;
+          fighting_cat.mice_count = 0;
+          cats[index].mousePoint += fighting_cat.mousePoint;
+          fighting_cat.mousePoint = 0;
+          // reducing power
+          fighting_cat.attackPoint = 2;
+          fighting_cat.defencePoint = 5;
+          cats[index].defencePoint -= (fighting_cat.defencePoint / cats[index].defencePoint) * fighting_cat.attackPoint;
 
-      }else if(fightingCatPoint > curretCatPoint) {
-        // Fighting cat is winner
-        // Freeze current Cat
-        cats[index].freeze = -3;
-        // Getting current cat mice
-        fighting_cat.mice_count += cats[index].mice_count;
-        cats[index].mice_count = 0;
-        fighting_cat.mousePoint += cats[index].mousePoint;
-        cats[index].mousePoint = 0;
-        // reducing power
-        cats[index].attackPoint = 2;
-        cats[index].defencePoint = 5;
-        fighting_cat.defencePoint -= (cats[index].defencePoint / fighting_cat.defencePoint) * cats[index].attackPoint;
+        }else if(fightingCatPoint > curretCatPoint) {
+          // Fighting cat is winner
+          // Freeze current Cat
+          cats[index].freeze = -3;
+          // Getting current cat mice
+          fighting_cat.mice_count += cats[index].mice_count;
+          cats[index].mice_count = 0;
+          fighting_cat.mousePoint += cats[index].mousePoint;
+          cats[index].mousePoint = 0;
+          // reducing power
+          cats[index].attackPoint = 2;
+          cats[index].defencePoint = 5;
+          fighting_cat.defencePoint -= (cats[index].defencePoint / fighting_cat.defencePoint) * cats[index].attackPoint;
+        }
+        cats[fighting_cat_index] = fighting_cat;
       }
-      cats[fighting_cat_index] = fighting_cat;
     }  
   }
 }
