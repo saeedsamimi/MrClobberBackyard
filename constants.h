@@ -34,6 +34,7 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
 #define FLAG_DWALL 1<<6
 #define FLAG_CHOCO 1<<7
 #define FLAG_FISH  1<<8
+#define FLAG_TRAP  1<<9
 
 #define MOUSE_COUNT 18
 #define DOG_COUNT 4
@@ -41,11 +42,14 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
 #define WALL_COUNT 18
 #define CHOCO_COUNT 8
 #define FISH_COUNT 10
+#define TRAP_COUNT 8
 #define ROUNDS_NUMBER 15
  
 typedef struct {
 	unsigned short int x, y;
-	unsigned short points;
+	unsigned short int points;
+	unsigned short int cat_index; // Index of cat that ate this mouse
+	unsigned short int mouse_type; // Actually this is same with points and stores type of mouse
 } MOUSE;
 typedef struct {
 	char state, index;

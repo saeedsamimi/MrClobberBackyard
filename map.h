@@ -189,6 +189,7 @@ void __generateRandomMap() {
 	srand(rand() - time(NULL));
 	for(int i=0;i<MOUSE_COUNT;i++) {
 		mouses[i].points = rand() % 3 + 1;
+		mouses[i].mouse_type = mouses[i].points;
 	}
 	// ---- init --- chocos
 	// quarter top left
@@ -284,9 +285,56 @@ void clearFishes() {
 	// ------ end clear ---- mouses
 }
 
+void __generateRandomTraps() {
+
+	int k,i,j;
+	// quarter top left
+	const int slice = BOARD_SIZE / 2;
+	int maxCount = TRAP_COUNT / 4;
+	for (k = 0; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice;
+		addFlag(&map[i][j], FLAG_TRAP);
+	}
+	// quarter top right
+	maxCount += TRAP_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_TRAP);
+			continue;
+		}
+		k--;
+	}
+	// quarter bottom left
+	maxCount += TRAP_COUNT / 4;
+	for (; k < maxCount; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_TRAP);
+			continue;
+		}
+		k--;
+	}
+	// last quarter is bottom right
+	for (;k < TRAP_COUNT; k++) {
+		i = rand() % slice + slice;
+		j = rand() % slice + slice;
+		if (!hasFlag(map[i][j], FLAG_CAT)) {
+			addFlag(&map[i][j], FLAG_TRAP);
+			continue;
+		}
+		k--;
+	}
+
+}
+
 void setMap() {
 	__initColors();
 	__generateRandomMap();
 	__generateRandomWalls();
+	__generateRandomTraps();
 }
 

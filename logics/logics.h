@@ -12,6 +12,7 @@ int canMove(int,int,enum MOVEMENT);
 void dogRandomMove();
 void eat(int, int, int);
 void mouseRandomMove();
+int trap(int,int,int);
 
 int canMove(int x, int y, enum MOVEMENT move) {
   if(x>BOARD_SIZE || y>BOARD_SIZE) return 0;
@@ -185,6 +186,7 @@ void eat(int x,int y,int cat_index) {
         cats[cat_index].mousePoint += mousePoints;
         cats[cat_index].mice_count++;
         mouses[i].points = INVALID_MOUSE_POINT;
+        mouses[i].cat_index = cat_index;
         removeFlag(&map[y][x], FLAG_MOUSE);
       }
     }
@@ -204,8 +206,8 @@ void releaseMice(int count) {
   for(int i=0;i<MOUSE_COUNT;i++) {
     if(count <= 0) break;
     if(mouses[i].points == INVALID_MOUSE_POINT) {
-      int randomPoint = random_function(3) + 1;
-      mouses[i].points = randomPoint;
+      int mouse_point = mouses[i].mouse_type;
+      mouses[i].points = mouse_point;
       // Select location for released mouses 
       MOUSE current_mouse;
       current_mouse = mouses[i];
@@ -305,7 +307,6 @@ void mouseRandomMove() {
     mouses[mouse_index].y = new_y;
   }
 }
-
 
 /// @brief Fight Function for Cats and Dogs
 /// @param x x coordinate of Cat or Dog
@@ -411,3 +412,47 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
     }  
   }
 }
+
+/// @brief Trap function for players
+/// @param x x of item to be checked for trap
+/// @param y y of item to be checked for trap
+/// @param index index of current cat
+int trap(int x,int y,int index) {
+  if(hasFlag(map[y][x],FLAG_TRAP)) {
+    printf("I GOT IN TRAP!\n");
+    if(cats[index].mice_count == 0) {
+      if(cats[index].attackPoint > 2) {
+        cats[index].attackPoint -= 2;
+      }else{
+        cats[index].defencePoint -=3;
+      }
+      return 0;
+    }
+    //--------- Release Strongest mouse of current cat -------
+    int max_mouse_point_index = -1;
+    int temp_max_mouse_point = 0;
+    for(int mouse_index = 0;mouse_index<MOUSE_COUNT;mouse_index++) {
+      if(mouses[mouse_index].points == INVALID_MOUSE_POINT) {
+        if(mouses[mouse_index].cat_index == index) {
+          if(mouses[mouse_index].mouse_type >= temp_max_mouse_point) {
+            temp_max_mouse_point = mouses[mouse_index].mouse_type;
+            max_mouse_point_index = mouse_index;
+          }
+        }
+        // Release Strongest mouse of current cat
+        mouses[mouse_index].cat_index = 0;
+        mouses[mouse_index].points = mouses[mouse_index].mouse_type;
+        //Check status for mouse location
+        while(hasFlag(map[mouses[mouse_index].y][mouses[mouse_index].x],FLAG_MOUSE)) {
+          int new_x = random_function(15);
+          int new_y = random_function(15);
+          mouses[mouse_index].x = new_x;
+          mouses[mouse_index].y = new_y;
+        }
+      }
+    }
+    //---------------------------------------------------
+  }
+  return 0;
+}
+

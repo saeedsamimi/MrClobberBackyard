@@ -329,6 +329,7 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 		clearMouses();
 		eat(newX, newY, currentPlayer);
 		fight(newX,newY,0,currentPlayer);
+		trap(newX,newY,currentPlayer);
 		// reset old house by counting the previous items count
 		int countOvers = 0;
 		int indexes[CAT_COUNT];
