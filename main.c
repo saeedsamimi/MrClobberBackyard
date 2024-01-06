@@ -10,6 +10,8 @@
 #include "logics/logics.h"
 #include <limits.h>
 
+void printDiceBoard(char);     // for printing the dice board in the area
+void __drawScaledPhoto(ALLEGRO_BITMAP*, float, float, float);
 void printEmptyBoard();       // print initialized map with walls but no player placed at squares
 char initializeDisplay();     // allegro display initialization and handling errors
 void printPlayers();          // print all of the players such as cat, dog, mouse, and more(except walls)
@@ -29,11 +31,14 @@ void freeCache();
 void finishBoard();         // free cache such as pictures and displays and fonts
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
-int currentPlayer = 0;        // as like as it's name stores the current player index
+int currentPlayer;        // as like as it's name stores the current player index
+int currentIndex = 0;
 int currentRound = 1;         // as like as it's name it stroes the current round information
 ALLEGRO_DISPLAY* display;     // as like as it's name stores the information about allegro display
-ALLEGRO_BITMAP* dogIcon[CAT_COUNT], * mouseIcon, * chocoIcon, * fishIcon;          // dog and mouse icon bitmap
+ALLEGRO_BITMAP* dogIcon[CAT_COUNT], *diceIcon[7], * mouseIcon, * chocoIcon, * fishIcon;          // dog and mouse icon bitmap
 const short int k = SQUARE_SIZE + 2 * MARGIN; // a helpfull number to save the size of each box
+int indicateSort[4] = { 0 };
+char diceRolled = 0;
 
 int main() {
 	setMap();
@@ -66,8 +71,8 @@ int main() {
 	}
 	printEmptyBoard();
 	printPlayers();
-	indicatePlayer();
 	printScoreBoard();
+	printDiceBoard(1);
 
 	al_flip_display(); // refresh the view
 
@@ -88,6 +93,15 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 	if(currentRound>ROUNDS_NUMBER) finishBoard();
 	al_wait_for_event(ev_queue, ev);
 	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
+	while (!diceRolled) {
+		if (ev->type == ALLEGRO_EVENT_KEY_UP && ev->keyboard.keycode == ALLEGRO_KEY_T) {
+			printDiceBoard(0);
+			currentPlayer = indicateSort[currentIndex];
+			break;
+		}
+		else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
+		if (!diceRolled) al_wait_for_event(ev_queue, ev);
+	}
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
 		al_flip_display();
 		switch (ev->keyboard.keycode) {
@@ -126,8 +140,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		}
 	}
 	// ---- REMOVE THIS SECTION ----
-	printEmptyBoard();
-	//printPlayers();
 	printCats();
 	indicatePlayer();
 	printChocolatesAndFishes();
@@ -150,11 +162,17 @@ char initializeDisplay() {
 	if (!al_init_ttf_addon()) return INIT_DISPLAY_TRUETYPE_FONT_ERR;
 	font = al_load_ttf_font("src/NotoSerif-Medium.ttf", 24, 0);
 	if (!font) return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
-	char temp[13];
+	char temp[14];
 	for (int i = 0; i < DOG_COUNT; i++) {
 		sprintf(temp, "src/dog%d.png", i + 1);
 		dogIcon[i] = al_load_bitmap(temp);
-		if(!dogIcon[i]) return INIT_DISPLAY_IMG_NOT_FOUND;
+		if (!dogIcon[i]) return INIT_DISPLAY_IMG_NOT_FOUND;
+	}
+	// --- load images --- dices
+	for (int i = 0; i <= 6; i++) {
+		sprintf(temp, "src/dice%d.png", i);
+		diceIcon[i] = al_load_bitmap(temp);
+		if (!diceIcon[i]) return INIT_DISPLAY_IMG_NOT_FOUND;
 	}
 	mouseIcon = al_load_bitmap("src/mouse.png");
 	chocoIcon = al_load_bitmap("src/chocolate.png");
@@ -228,6 +246,80 @@ void printScoreBoard() {
 	}
 }
 
+void printDiceBoard(char mode) {
+	float h = al_get_font_line_height(font);  //get the height of a line of text then multiply 2
+	const float x = BOARD_SIZE * k;
+	const float score_board_H = 10 * h;
+	const float y = score_board_H + MARGIN;
+	const float diceW = SCORE_BOARD_WIDTH / 4 - MARGIN;
+	const float diceH = diceW + 2 * MARGIN + 3 * h;
+	// printDiceBoard
+	static struct pair {
+		int index;
+		int value;
+	};
+	static struct pair dices[4];
+	if (mode) {
+		diceRolled = 0;
+		al_draw_filled_rectangle(x, y, x + SCORE_BOARD_WIDTH, y + diceH, al_map_rgb(220, 220, 220));
+	}
+	for (int i = 0; i < 4; i++) {
+		if (mode)
+			__drawScaledPhoto(diceIcon[0], x + i * (diceW + MARGIN) + MARGIN, y + MARGIN, diceW);
+		else{
+			int randomDice;
+			char canMake;
+			do {
+				randomDice = random_function(6) + 1;
+				canMake = 1;
+				for (int j = 0; j < i && canMake; j++)
+					if (randomDice == dices[j].value)
+						canMake = 0;
+			} while (!canMake);
+			dices[i].index = i;
+			dices[i].value = randomDice;
+			__drawScaledPhoto(diceIcon[randomDice], x + i * (diceW + MARGIN) + MARGIN, y + MARGIN, diceW);
+		}
+	}
+	if (!mode) {
+		// sort the dices
+		for (int i = 1; i < 4; i++) {
+			struct pair temp = dices[i];
+			int j = i - 1;
+			while (j >= 0 && dices[j].value < temp.value) {
+				dices[j + 1] = dices[j];
+				j--;
+			}
+			dices[j + 1] = temp;
+		}
+		printf("\n");
+		for (int i = 0; i < 4; i++) {
+			printf("<PLAYER %d is %d>", dices[i].index + 1, dices[i].value);
+			indicateSort[i] = dices[i].index;
+		}
+		printf("\n");
+		diceRolled = 1;
+	}
+	// printPlayer Circles
+	for (int i = 0; i < 4; i++) {
+		float cx = x + i * (diceW + MARGIN) + MARGIN + diceW / 2;
+		float cy = y + diceW + diceW / 2;
+		if(!mode)
+			al_draw_filled_circle(cx, cy, diceW / 4, cats[i].color);
+		else
+			al_draw_filled_circle(cx, cy, diceW / 4, al_map_rgb(234, 234, 234));
+	}
+	if (!mode) {
+		for (int i = 0; i < 4; i++) {
+			float cx = x + indicateSort[i] * (diceW + MARGIN) + MARGIN + diceW / 2;
+			float cy = y + diceW + diceW / 2;
+			char t[4];
+			sprintf(t, "#%d", i + 1);
+			al_draw_text(font, BLACK, cx, cy - h / 2, ALLEGRO_ALIGN_CENTER, t);
+		}
+	}
+}
+
 // print initialized map with walls but no player placed at squares
 // only prints the empty board not anything else
 void printEmptyBoard() {
@@ -254,7 +346,7 @@ void printEmptyBoard() {
 }
 
 // draw a photo in given size this function can not helpful everywhere
-void __drawScaledPhoto(ALLEGRO_BITMAP* img, float x, float y, int w) {
+void __drawScaledPhoto(ALLEGRO_BITMAP* img, float x, float y, float w) {
 	al_draw_scaled_bitmap(img, 0, 0,
 		al_get_bitmap_width(img), al_get_bitmap_height(img), x, y, w, w, 0);
 }
@@ -445,7 +537,7 @@ void clearSquare(int x, int y) {
 
 // get the next player and then indicate that
 void nextPlayer() {
-	if (currentPlayer == CAT_COUNT - 1) {
+	if (currentIndex == CAT_COUNT - 1) {
 		// Add Defence Point to add players one unit
 		for(int cat_index=0;cat_index<CAT_COUNT;cat_index++) {
 			if(cats[cat_index].freeze >= 0) {
@@ -454,20 +546,26 @@ void nextPlayer() {
 			cats[cat_index].freeze++;
 		}
 		//------------------------------------------
-		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+		currentIndex = 0;
 		currentRound++;
 		clearDogs();
 		dogRandomMove();
 		printDogs();
 		mouseRandomMove();
 		printCats();
+		printMouses();
+		printChocolatesAndFishes();
+		printScoreBoard();
+		printDiceBoard(1);
 	} else{ 
-		currentPlayer = (currentPlayer + 1) % CAT_COUNT;
+		currentIndex = (currentIndex + 1) % CAT_COUNT;
+		currentPlayer = indicateSort[currentIndex];
+		printMouses();
+		printChocolatesAndFishes();
+		printScoreBoard();
+		indicatePlayer();
 	}
-	printMouses();
-	printChocolatesAndFishes();
-	printScoreBoard();
-	indicatePlayer();
 }
 
 void finishBoard() {exit(0);}
+
