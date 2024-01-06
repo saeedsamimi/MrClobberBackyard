@@ -6,6 +6,11 @@
 #include <time.h>
 #include "random.h"
 
+
+short int dices[CAT_COUNT] = {-1};
+short int playersTurn[CAT_COUNT];
+short int priority[CAT_COUNT] = {-1};
+
 unsigned short int REMAINING_FISHES = FISH_COUNT;
 unsigned short int REMAINING_MOUSES = MOUSE_COUNT;
 int canMove(int,int,enum MOVEMENT);
@@ -456,3 +461,15 @@ int trap(int x,int y,int index) {
   return 0;
 }
 
+void dice(int current_player_index) {
+  //int dice_number = random_function(6) + 1;
+  //dice[current_player_index] = dice_number;
+  //if(current_player_index == CAT_COUNT - 1) {
+    // Time to set players turn based on dices array
+    // First check to see if any of dices are same
+    //If two or more players are same
+     //If it is first round that we dice then dice them again until no same players exist
+        // set dice number as priority for same players
+    //create playersTurn based on dices with paying attention to priority if same players exists
+  //}
+}
