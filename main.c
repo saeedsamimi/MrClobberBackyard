@@ -8,6 +8,7 @@
 #include "test.h"
 #include "constants.h"
 #include "logics/logics.h"
+#include "logics/diceManager.h"
 #include <limits.h>
 
 void printDiceBoard(char);     // for printing the dice board in the area
@@ -83,7 +84,6 @@ int main() {
 	ALLEGRO_EVENT event;
 	// only for test this section , this is going to be changed as soon as possible
 	gameLoop(ev_queue, &event,NO_MOVE);
-	freeCache();
 	return 0;
 }
 
@@ -93,14 +93,18 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 	if(currentRound>ROUNDS_NUMBER) finishBoard();
 	al_wait_for_event(ev_queue, ev);
 	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
-	while (!diceRolled) {
+	if (!diceRolled) {
+		clearCats();
+		printCats();
+		al_flip_display();
+	}
+	while (diceRolled != 1) {
 		if (ev->type == ALLEGRO_EVENT_KEY_UP && ev->keyboard.keycode == ALLEGRO_KEY_T) {
 			printDiceBoard(0);
-			currentPlayer = indicateSort[currentIndex];
-			break;
+			al_flip_display();
 		}
 		else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
-		if (!diceRolled) al_wait_for_event(ev_queue, ev);
+		if (diceRolled != 1) al_wait_for_event(ev_queue, ev);
 	}
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
 		al_flip_display();
@@ -254,67 +258,41 @@ void printDiceBoard(char mode) {
 	const float diceW = SCORE_BOARD_WIDTH / 4 - MARGIN;
 	const float diceH = diceW + 2 * MARGIN + 3 * h;
 	// printDiceBoard
-	static struct pair {
-		int index;
-		int value;
-	};
-	static struct pair dices[4];
-	if (mode) {
+	if (!mode) {
+		if (diceRolled == 0) {
+			diceRolled = toIndex(indicateSort) ? 1 : 2;
+		}
+		else {
+			improveIndexes(indicateSort);
+			diceRolled = 1;
+		}
+		if (diceRolled != 2)
+			currentPlayer = indicateSort[currentIndex];
+		printf("current player: %d with index %d\n", currentPlayer, currentIndex);
+	}
+	else {
 		diceRolled = 0;
 		al_draw_filled_rectangle(x, y, x + SCORE_BOARD_WIDTH, y + diceH, al_map_rgb(220, 220, 220));
-	}
-	for (int i = 0; i < 4; i++) {
-		if (mode)
+		for (int i = 0; i < CAT_COUNT; i++) {
 			__drawScaledPhoto(diceIcon[0], x + i * (diceW + MARGIN) + MARGIN, y + MARGIN, diceW);
-		else{
-			int randomDice;
-			char canMake;
-			do {
-				randomDice = random_function(6) + 1;
-				canMake = 1;
-				for (int j = 0; j < i && canMake; j++)
-					if (randomDice == dices[j].value)
-						canMake = 0;
-			} while (!canMake);
-			dices[i].index = i;
-			dices[i].value = randomDice;
-			__drawScaledPhoto(diceIcon[randomDice], x + i * (diceW + MARGIN) + MARGIN, y + MARGIN, diceW);
-		}
-	}
-	if (!mode) {
-		// sort the dices
-		for (int i = 1; i < 4; i++) {
-			struct pair temp = dices[i];
-			int j = i - 1;
-			while (j >= 0 && dices[j].value < temp.value) {
-				dices[j + 1] = dices[j];
-				j--;
-			}
-			dices[j + 1] = temp;
-		}
-		printf("\n");
-		for (int i = 0; i < 4; i++) {
-			printf("<PLAYER %d is %d>", dices[i].index + 1, dices[i].value);
-			indicateSort[i] = dices[i].index;
-		}
-		printf("\n");
-		diceRolled = 1;
-	}
-	// printPlayer Circles
-	for (int i = 0; i < 4; i++) {
-		float cx = x + i * (diceW + MARGIN) + MARGIN + diceW / 2;
-		float cy = y + diceW + diceW / 2;
-		if(!mode)
-			al_draw_filled_circle(cx, cy, diceW / 4, cats[i].color);
-		else
-			al_draw_filled_circle(cx, cy, diceW / 4, al_map_rgb(234, 234, 234));
-	}
-	if (!mode) {
-		for (int i = 0; i < 4; i++) {
-			float cx = x + indicateSort[i] * (diceW + MARGIN) + MARGIN + diceW / 2;
+			float cx = x + i * (diceW + MARGIN) + MARGIN + diceW / 2;
 			float cy = y + diceW + diceW / 2;
-			char t[4];
-			sprintf(t, "#%d", i + 1);
+			al_draw_filled_circle(cx, cy, diceW / 4, al_map_rgb(234, 234, 234));
+		}
+	}
+	if (!mode) {
+		for (int i = 0; i < CAT_COUNT; i++) {
+			DICE temp = DICES[i];
+			__drawScaledPhoto(diceIcon[temp.diceInt], x + temp.cat_index * (diceW + MARGIN) + MARGIN, y + MARGIN, diceW);
+			float cx = x + temp.cat_index * (diceW + MARGIN) + MARGIN + diceW / 2;
+			float cy = y + diceW + diceW / 2;
+			if (temp.fixed)
+				al_draw_filled_circle(cx, cy, diceW / 4, cats[temp.cat_index].color);
+			else
+				al_draw_filled_circle(cx, cy, diceW / 4, al_map_rgb(234, 234, 234));
+			char t[4] = "-";
+			if (temp.fixed)
+				sprintf(t, "#%d", temp.index + 1);
 			al_draw_text(font, BLACK, cx, cy - h / 2, ALLEGRO_ALIGN_CENTER, t);
 		}
 	}
@@ -567,5 +545,7 @@ void nextPlayer() {
 	}
 }
 
-void finishBoard() {exit(0);}
-
+void finishBoard() { 
+	freeCache();
+	exit(0); 
+}
