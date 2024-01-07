@@ -12,6 +12,7 @@
 #include "windows/startWin.h"
 #include <limits.h>
 
+void printDiceHint(char);
 void printDiceBoard(char);     // for printing the dice board in the area
 void __drawScaledPhoto(ALLEGRO_BITMAP*, float, float, float);
 void printEmptyBoard();       // print initialized map with walls but no player placed at squares
@@ -99,6 +100,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 	if (!diceRolled) {
 		clearCats();
 		printCats();
+		printDiceHint(1);
 		al_flip_display();
 	}
 	al_wait_for_event(ev_queue, ev);
@@ -111,7 +113,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
 		if(diceRolled != 1) al_wait_for_event(ev_queue, ev);
 	}
-	printScoreBoard();
+	printDiceHint(0);
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
 		al_flip_display();
 		switch (ev->keyboard.keycode) {
@@ -189,6 +191,7 @@ char initializeDisplay() {
 	fishIcon = al_load_bitmap("src/fish.png");
 	if (!mouseIcon || !chocoIcon || !fishIcon) return INIT_DISPLAY_IMG_NOT_FOUND;
 	al_set_window_position(display, 300, 40);
+	al_set_display_icon(display, img);
 	return INIT_DISPLAY_SUCCESS;
 }
 
@@ -518,7 +521,6 @@ void clearSquare(int x, int y) {
 	al_draw_filled_rectangle(x * k + MARGIN, y * k + MARGIN, x * k + MARGIN + SQUARE_SIZE, y * k + MARGIN + SQUARE_SIZE, COLOR4);
 }
 
-
 // get the next player and then indicate that
 void nextPlayer() {
 	if (currentIndex == CAT_COUNT - 1) {
@@ -554,4 +556,14 @@ void nextPlayer() {
 void finishBoard() { 
 	freeCache();
 	exit(0); 
+}
+
+void printDiceHint(char shown) {
+	const int x = k * BOARD_SIZE + SCORE_BOARD_WIDTH / 2; //the basic left offset
+	const int w = al_get_text_width(Font, "Please press T for rolling dices!");
+	const int fontH = al_get_font_line_height(Font);
+	const int h = 16 * fontH + SCORE_BOARD_WIDTH / 4 + MARGIN;
+	al_draw_filled_rectangle(x - w / 2 - 10, h - fontH / 2, x + w / 2 + 10, 1.5 * fontH + h, shown ? COLOR2 : WHITE);
+	if (shown)
+		al_draw_text(Font, BLACK, x, h, ALLEGRO_ALIGN_CENTER, "Please press T for rolling dices!");
 }

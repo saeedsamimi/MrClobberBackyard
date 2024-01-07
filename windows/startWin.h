@@ -8,8 +8,10 @@
 #include "allegro5/allegro_image.h"
 #include "../constants.h"
 
+const char fileNames[][16] = { "src/game.png","src/history.png","src/info.png","src/quit.png" };
+
 ALLEGRO_FONT* Font;
-ALLEGRO_BITMAP* img;
+ALLEGRO_BITMAP* img, *icons[4];
 const char titles[][15] = { "START NEW GAME","RESUME GAME","ABOUT","QUIT" };
 #define START_HEIGHT 650
 #define START_WIDTH 500
@@ -17,13 +19,14 @@ const char titles[][15] = { "START NEW GAME","RESUME GAME","ABOUT","QUIT" };
 typedef struct {
 	float x, y;
 	float width, height;
-	char text[15];
+	char text[15], right;
+	ALLEGRO_BITMAP** imgPointer;
 	ALLEGRO_COLOR color;
 } GBUTTON;
 
 int getFontLineHeight();
 void drawRectangle(GBUTTON*);
-void setBtn(GBUTTON*, float, float, float, float,const char[15]);
+void setBtn(GBUTTON*, float, float, float, float,const char[15],ALLEGRO_BITMAP**);
 char inRectangle(const GBUTTON*, int, int);
 void paint(const GBUTTON*, int);
 void resetRectangleColor(GBUTTON*);
@@ -31,6 +34,8 @@ void setRectangleColor(GBUTTON*, ALLEGRO_COLOR);
 
 int runStartWin() {
 	al_init();
+	al_set_new_display_refresh_rate(60);
+	al_set_app_name("Mr. Clobber BackYard");
 	ALLEGRO_DISPLAY* Display = al_create_display(START_WIDTH, START_HEIGHT);
 	al_init_primitives_addon();
 	al_init_font_addon();
@@ -47,10 +52,19 @@ int runStartWin() {
 		printf("IMAGE NOT LOADED!");
 		return;
 	}
+	al_set_display_icon(Display, img);
+	for (int i = 0; i < 4; i++) {
+		icons[i] = al_load_bitmap(fileNames[i]);
+		if (!icons[i]) {
+			printf("IMAGE NOT LOADED!");
+			return;
+		}
+	}
 	int rectCount = 4;
 	GBUTTON rects[4];
 	for (int i = 0; i < rectCount; i++) {
-		setBtn(rects + i, i % 2 ? -30 : 30, i * (getFontLineHeight() * 2 + 10), 400, getFontLineHeight() * 2, titles[i]);
+		setBtn(rects + i, i % 2 ? -30 : 30, i * (getFontLineHeight() * 2 + 10), 400, getFontLineHeight() * 2, titles[i],icons + i);
+		rects[i].right = i % 2;
 	}
 	paint(rects, 1);
 
@@ -79,7 +93,8 @@ int runStartWin() {
 				if (!i && inRectangle(rects + i, e.mouse.x, e.mouse.y)) {
 					al_destroy_display(Display);
 					al_destroy_font(Font);
-					al_destroy_bitmap(img);
+					for (int i = 0; i < 4; i++)
+						al_destroy_bitmap(icons[i]);
 					al_rest(.5);
 					return 1;
 				}
@@ -87,6 +102,8 @@ int runStartWin() {
 					al_destroy_display(Display);
 					al_destroy_font(Font);
 					al_destroy_bitmap(img);
+					for (int i = 0; i < 4; i++)
+						al_destroy_bitmap(icons[i]);
 					return 2;
 				}
 			break;
@@ -116,11 +133,12 @@ void paint(const GBUTTON* rects, int n) {
 	al_flip_display();
 }
 
-void setBtn(GBUTTON* rect, float offx, float offy, float width, float height,const char name[15]) {
+void setBtn(GBUTTON* rect, float offx, float offy, float width, float height,const char name[15],ALLEGRO_BITMAP** bmpPtr) {
 	rect->x = (START_WIDTH - width) / 2 + offx;
 	rect->y = START_WIDTH / 3 + offy + 170;
 	rect->width = width;
 	rect->height = height;
+	rect->imgPointer = bmpPtr;
 	strcpy(rect->text, name);
 	rect->color = al_map_rgb(0, 0, 0);
 }
@@ -135,6 +153,8 @@ int getFontLineHeight() {
 }
 
 void drawRectangle(const GBUTTON* rect) {
+	int h = al_get_bitmap_width(*(rect->imgPointer));
+	al_draw_scaled_bitmap(*(rect->imgPointer), 0, 0, h, h, rect->right ? rect->x + rect->width + 5: rect->x - 65, rect->y + 5, 55, 55, 0);
 	al_draw_rectangle(rect->x, rect->y, rect->x + rect->width, rect->y + rect->height, rect->color, 2);
 	al_draw_text(Font, rect->color, rect->x + rect->width / 2, rect->y + rect->height / 2 - getFontLineHeight() / 2, ALLEGRO_ALIGN_CENTER, rect->text);
 }
