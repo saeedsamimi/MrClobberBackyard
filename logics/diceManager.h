@@ -120,14 +120,8 @@ void printDices(DICE dices[CAT_COUNT]) {
 
 int toIndex(int indices[CAT_COUNT]) {
 	__initDices(DICES);
-	//printf("FIRST ROLL: ");
-	//printDices(DICES);
 	distinguishDices(DICES);
-	//printf("DISTINGUISHED: ");
-	//printDices(DICES);
 	fixDices(DICES);
-	//printf("FIXED: ");
-	//printDices(DICES);
 	char res = isReadyToUse(DICES);
 	for (int i = 0; i < CAT_COUNT; i++)
 		indices[DICES[i].index] = DICES[i].cat_index;
@@ -137,7 +131,6 @@ int toIndex(int indices[CAT_COUNT]) {
 void improveIndexes(int indices[CAT_COUNT]) {
 	improveDices(DICES);
 	printf("IMPROVED: ");
-	//printDices(DICES);
 	for (int i = 0; i < CAT_COUNT; i++)
 		indices[DICES[i].index] = DICES[i].cat_index;
 }

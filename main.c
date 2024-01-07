@@ -9,6 +9,7 @@
 #include "constants.h"
 #include "logics/logics.h"
 #include "logics/diceManager.h"
+#include "windows/startWin.h"
 #include <limits.h>
 
 void printDiceBoard(char);     // for printing the dice board in the area
@@ -31,7 +32,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main g
 void freeCache();    
 void finishBoard();         // free cache such as pictures and displays and fonts
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
-ALLEGRO_FONT* font;           // as like as it's name this is a main font configuration
+ALLEGRO_FONT* Font;           // as like as it's name this is a main font configuration
 int currentPlayer;        // as like as it's name stores the current player index
 int currentIndex = 0;
 int currentRound = 1;         // as like as it's name it stroes the current round information
@@ -43,6 +44,11 @@ char diceRolled = 0;
 
 int main() {
 	setMap();
+	switch (runStartWin()) {
+	case 2:
+		printf("PROGRAM FINISHED.\n");
+		return 0;
+	}
 	__testMap();
 	{// ------- Handle Initializing Errs ---------------------------
 		switch (initializeDisplay()) {
@@ -72,7 +78,6 @@ int main() {
 	}
 	printEmptyBoard();
 	printPlayers();
-	printScoreBoard();
 	printDiceBoard(1);
 
 	al_flip_display(); // refresh the view
@@ -91,21 +96,22 @@ int main() {
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT previous_move) {
 	//------- Check For Game Roundes -------
 	if(currentRound>ROUNDS_NUMBER) finishBoard();
-	al_wait_for_event(ev_queue, ev);
-	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
 	if (!diceRolled) {
 		clearCats();
 		printCats();
 		al_flip_display();
 	}
+	al_wait_for_event(ev_queue, ev);
+	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
 	while (diceRolled != 1) {
 		if (ev->type == ALLEGRO_EVENT_KEY_UP && ev->keyboard.keycode == ALLEGRO_KEY_T) {
 			printDiceBoard(0);
 			al_flip_display();
 		}
 		else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
-		if (diceRolled != 1) al_wait_for_event(ev_queue, ev);
+		if(diceRolled != 1) al_wait_for_event(ev_queue, ev);
 	}
+	printScoreBoard();
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
 		al_flip_display();
 		switch (ev->keyboard.keycode) {
@@ -164,8 +170,8 @@ char initializeDisplay() {
 	if (!al_init_font_addon()) return INIT_DISPLAY_FONT_ERR;
 	if (!al_init_image_addon()) return INIT_DISPLAY_IMAGE_ADDON_ERR;
 	if (!al_init_ttf_addon()) return INIT_DISPLAY_TRUETYPE_FONT_ERR;
-	font = al_load_ttf_font("src/NotoSerif-Medium.ttf", 24, 0);
-	if (!font) return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
+	Font = al_load_ttf_font("src/NotoSerif-Medium.ttf", 24, 0);
+	if (!Font) return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
 	char temp[14];
 	for (int i = 0; i < DOG_COUNT; i++) {
 		sprintf(temp, "src/dog%d.png", i + 1);
@@ -193,7 +199,7 @@ void freeCache() {
 	al_destroy_bitmap(chocoIcon);
 	al_destroy_bitmap(fishIcon);
 	al_destroy_bitmap(mouseIcon);
-	al_destroy_font(font);
+	al_destroy_font(Font);
 	al_destroy_display(display);
 }
 
@@ -201,7 +207,7 @@ void freeCache() {
 // this function can print the score board with its information
 void printScoreBoard() {
 	const int x = k * BOARD_SIZE; //the basic left offset
-	int h = al_get_font_line_height(font)*2;  //get the height of a line of text then multiply 2
+	int h = al_get_font_line_height(Font)*2;  //get the height of a line of text then multiply 2
 	// draw the two important rectangles on the top of score board
 	al_draw_filled_rectangle(x, 0, x + SCORE_BOARD_WIDTH / 2, h, COLOR3);
 	al_draw_filled_rectangle(x + SCORE_BOARD_WIDTH / 2, 0, x + SCORE_BOARD_WIDTH, h, COLOR3);
@@ -209,8 +215,8 @@ void printScoreBoard() {
 	char playerTurnText[15], gameRoundText[9];
 	sprintf(playerTurnText, "Player %d turn", currentPlayer + 1);
 	sprintf(gameRoundText, "Round %d", currentRound);
-	al_draw_text(font, BLACK, x + SCORE_BOARD_WIDTH / 4, h/4, ALLEGRO_ALIGN_CENTER, playerTurnText);
-	al_draw_text(font, BLACK, x + SCORE_BOARD_WIDTH * 3 / 4, h / 4, ALLEGRO_ALIGN_CENTER, gameRoundText);
+	al_draw_text(Font, BLACK, x + SCORE_BOARD_WIDTH / 4, h/4, ALLEGRO_ALIGN_CENTER, playerTurnText);
+	al_draw_text(Font, BLACK, x + SCORE_BOARD_WIDTH * 3 / 4, h / 4, ALLEGRO_ALIGN_CENTER, gameRoundText);
 	// a static constant object which is stores the table titles
 	const static char TITLES[][7] = { "Player","Energy", "Power","Point" };
 	// solve width for each item
@@ -218,40 +224,40 @@ void printScoreBoard() {
 	// draw empty table cells
 	for (int i = 0; i < 4; i++) {
 		al_draw_filled_rectangle(x + i * w, h, x + (i + 1) * w, h + 4 * h / 5, COLOR4);
-		al_draw_text(font, BLACK,
+		al_draw_text(Font, BLACK,
 			x + i * w + w / 2, h + h / 8,
 			ALLEGRO_ALIGN_CENTER, TITLES[i]);
 	}
 	// use y property for saving information for text displacement y
 	const float y = 9 * h / 5;
 	h = h * .8; // minimize h
-	char t[3];  // use a temp char array for saving the strings of items
-	for (int i = 0; i < CAT_COUNT; i++) {
+	char t[6];  // use a temp char array for saving the strings of items
+	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < CAT_COUNT; j++) {
-			al_draw_filled_rectangle(x + i * w, y + j * h, x + (i + 1) * w, y + (j + 1) * h, COLOR2);
+			al_draw_filled_rectangle(x + i * w, y + indicateSort[j] * h, x + (i + 1) * w, y + (indicateSort[j] + 1) * h,cats[indicateSort[j]].color);
 			// use switch case for print the current column data
 			switch (i) {
 			case 0:
-				sprintf(t, "#%d", j + 1);
+				sprintf(t, "%s", indicateSort[j] == currentPlayer ? "<<>>" : "");
 				break;
 			case 1:
-				sprintf(t, "%d", cats[j].defencePoint);
+				sprintf(t, "%d", cats[indicateSort[j]].defencePoint);
 				break;
 			case 2:
-				sprintf(t, "%d", cats[j].attackPoint);
+				sprintf(t, "%d", cats[indicateSort[j]].attackPoint);
 				break;
 			case 3:
-				sprintf(t, "%d", cats[j].mousePoint);
+				sprintf(t, "%d", cats[indicateSort[j]].mousePoint);
 				break;
 			}
-			al_draw_text(font,WHITE, x + (i + .5) * w, y + (j + .5) * h - 15, 
+			al_draw_text(Font, WHITE, x + (i + .5) * w, y + (indicateSort[j] + .5) * h - 15,
 				ALLEGRO_ALIGN_CENTER, t);
 		}
 	}
 }
 
 void printDiceBoard(char mode) {
-	float h = al_get_font_line_height(font);  //get the height of a line of text then multiply 2
+	float h = al_get_font_line_height(Font);  //get the height of a line of text then multiply 2
 	const float x = BOARD_SIZE * k;
 	const float score_board_H = 10 * h;
 	const float y = score_board_H + MARGIN;
@@ -293,7 +299,7 @@ void printDiceBoard(char mode) {
 			char t[4] = "-";
 			if (temp.fixed)
 				sprintf(t, "#%d", temp.index + 1);
-			al_draw_text(font, BLACK, cx, cy - h / 2, ALLEGRO_ALIGN_CENTER, t);
+			al_draw_text(Font, BLACK, cx, cy - h / 2, ALLEGRO_ALIGN_CENTER, t);
 		}
 	}
 }
