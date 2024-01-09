@@ -152,6 +152,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		}
 	}
 	// ---- REMOVE THIS SECTION ----
+	//printEmptyBoard();
 	printCats();
 	indicatePlayer();
 	printChocolatesAndFishes();
@@ -275,9 +276,10 @@ void printDiceBoard(char mode) {
 			improveIndexes(indicateSort);
 			diceRolled = 1;
 		}
-		if (diceRolled != 2)
+		if (diceRolled != 2) {
 			currentPlayer = indicateSort[currentIndex];
-		printf("current player: %d with index %d\n", currentPlayer, currentIndex);
+			printf("current player: %d with index %d\n", currentPlayer, currentIndex);
+		}
 	}
 	else {
 		diceRolled = 0;
@@ -443,9 +445,6 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 		clearSquare(cats[currentPlayer].x, cats[currentPlayer].y);
 		printCats();
 		printChocolatesAndFishes();
-	} else {
-		nextPlayer();
-		indicatePlayer();
 	}
 }
 
