@@ -43,22 +43,13 @@ int runStartWin() {
 	al_init_image_addon();
 
 	Font = al_load_ttf_font("src/NotoSerif-Medium.ttf", 24, 0);
-	if (!Font) {
-		printf("FONT NOT LOADED!");
-		return;
-	}
+	if (!Font) return -1;
 	img = al_load_bitmap("src/pic.png");
-	if (!img) {
-		printf("IMAGE NOT LOADED!");
-		return;
-	}
+	if (!img) return -1;
 	al_set_display_icon(Display, img);
 	for (int i = 0; i < 4; i++) {
 		icons[i] = al_load_bitmap(fileNames[i]);
-		if (!icons[i]) {
-			printf("IMAGE NOT LOADED!");
-			return;
-		}
+		if (!icons[i]) return -1;
 	}
 	int rectCount = 4;
 	GBUTTON rects[4];
@@ -67,16 +58,21 @@ int runStartWin() {
 		rects[i].right = i % 2;
 	}
 	paint(rects, 1);
-
 	ALLEGRO_EVENT_QUEUE* ev_queue = al_create_event_queue();
 	al_install_keyboard();
 	al_install_mouse();
 	al_register_event_source(ev_queue, al_get_keyboard_event_source());
 	al_register_event_source(ev_queue, al_get_mouse_event_source());
+	al_register_event_source(ev_queue, al_get_display_event_source(Display));
 	ALLEGRO_EVENT e;
 	while (1) {
 		al_wait_for_event(ev_queue, &e);
 		switch (e.type) {
+		case ALLEGRO_EVENT_DISPLAY_CLOSE:
+			al_destroy_display(Display);
+			al_destroy_font(Font);
+			printf("menu closed!\n");
+			exit(0);
 		case ALLEGRO_EVENT_KEY_DOWN:
 			switch (e.keyboard.keycode) {
 			case ALLEGRO_KEY_ESCAPE:

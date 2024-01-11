@@ -46,6 +46,9 @@ char diceRolled = 0;
 int main() {
 	setMap();
 	switch (runStartWin()) {
+	case -1:
+		printf("an error occured!");
+		return 1;
 	case 2:
 		printf("PROGRAM FINISHED.\n");
 		return 0;
