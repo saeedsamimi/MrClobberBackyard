@@ -11,6 +11,7 @@
 #include "logics/diceManager.h"
 #include "windows/startWin.h"
 #include "windows/error.h"
+#include "windows/finishWin.h"
 #include <limits.h>
 #ifdef _WIN32
 // Windows-specific includes
@@ -168,7 +169,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		}
 	}
 	// ---- REMOVE THIS SECTION ----
-	//printEmptyBoard();
+	printEmptyBoard();
 	printCats();
 	indicatePlayer();
 	printChocolatesAndFishes();
@@ -258,7 +259,6 @@ void freeCache() {
 	al_destroy_bitmap(chocoIcon);
 	al_destroy_bitmap(fishIcon);
 	al_destroy_bitmap(mouseIcon);
-	al_destroy_font(Font);
 	al_destroy_event_queue(EVQ);
 	al_destroy_display(display);
 }
@@ -277,8 +277,6 @@ void printScoreBoard() {
 	sprintf(gameRoundText, "Round %d", currentRound);
 	al_draw_text(Font, BLACK, x + SCORE_BOARD_WIDTH / 4, h/4, ALLEGRO_ALIGN_CENTER, playerTurnText);
 	al_draw_text(Font, BLACK, x + SCORE_BOARD_WIDTH * 3 / 4, h / 4, ALLEGRO_ALIGN_CENTER, gameRoundText);
-	// a static constant object which is stores the table titles
-	const static char TITLES[][7] = { "Player","Energy", "Power","Point" };
 	// solve width for each item
 	const int w = SCORE_BOARD_WIDTH / 4;
 	// draw empty table cells
@@ -615,7 +613,7 @@ void nextPlayer() {
 // for finishing the game
 void finishBoard() { 
 	freeCache();
-	exit(0); 
+	runFinishWin(Font,display, cats);
 }
 
 // prints the dice (should T press) Hint
