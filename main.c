@@ -10,7 +10,21 @@
 #include "logics/logics.h"
 #include "logics/diceManager.h"
 #include "windows/startWin.h"
+#include "windows/error.h"
 #include <limits.h>
+#ifdef _WIN32
+// Windows-specific includes
+#include <windows.h>
+#elif _WIN64
+// Windows-specific includes
+#include <windows.h>
+#elif __linux__
+// Linux-specific includes
+#include <unistd.h>
+#elif __APPLE__
+// macOS-specific includes
+#include <unistd.h>
+#endif
 
 void printDiceHint(char);
 void printDiceBoard(char);     // for printing the dice board in the area
@@ -30,20 +44,41 @@ void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void clearSquare(int, int);   // clear the custom square to redifne new character
 void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main game loop
-void freeCache();    
-void finishBoard();         // free cache such as pictures and displays and fonts
+void freeCache();             // free cache such as pictures and displays and fonts
+void finishBoard();           // for finishing game
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
+void GUI();
 ALLEGRO_FONT* Font;           // as like as it's name this is a main font configuration
 int currentPlayer;        // as like as it's name stores the current player index
 int currentIndex = 0;
 int currentRound = 1;         // as like as it's name it stroes the current round information
 ALLEGRO_DISPLAY* display;     // as like as it's name stores the information about allegro display
 ALLEGRO_BITMAP* dogIcon[CAT_COUNT], *diceIcon[7], * mouseIcon, * chocoIcon, * fishIcon;          // dog and mouse icon bitmap
+ALLEGRO_EVENT_QUEUE* EVQ;
 const short int k = SQUARE_SIZE + 2 * MARGIN; // a helpfull number to save the size of each box
 int indicateSort[4] = { 0 };
 char diceRolled = 0;
 
 int main() {
+#ifdef _WIN32
+	HWND hWnd = GetConsoleWindow();
+	ShowWindow(hWnd, SW_HIDE);
+	GUI();
+#elif _WIN64
+	HWND hWnd = GetConsoleWindow();
+	ShowWindow(hWnd, SW_HIDE);
+	GUI();
+#elif __linux__
+	if (fork() == 0)
+		GUI();
+#elif __APPLE__
+	if (fork() == 0)
+		GUI();
+#endif
+	return 0;
+}
+
+void GUI() {
 	setMap();
 	switch (runStartWin()) {
 	case -1:
@@ -54,32 +89,11 @@ int main() {
 		return 0;
 	}
 	__testMap();
-	{// ------- Handle Initializing Errs ---------------------------
-		switch (initializeDisplay()) {
-		case INIT_DISPLAY_ERR:
-			printf("display can not be initialized!\n");
-			return INIT_DISPLAY_ERR;
-		case INIT_DISPLAY_ALLEGRO_ERR:
-			printf("the allegro can not be initialized!\n");
-			return INIT_DISPLAY_ALLEGRO_ERR;
-		case INIT_DISPLAY_PRIMITIVES_ERR:
-			printf("can not to load the allegro_primitives library!\n");
-			return INIT_DISPLAY_PRIMITIVES_ERR;
-		case INIT_DISPLAY_FONT_ERR:
-			printf("can not run allegro font addon!\n");
-			return INIT_DISPLAY_FONT_ERR;
-		case INIT_DISPLAY_TRUETYPE_FONT_ERR:
-			printf("can not run allegro TrueType fonts!\n");
-			return INIT_DISPLAY_TRUETYPE_FONT_ERR;
-		case INIT_DISPLAY_FONT_NOT_FOUND_ERR:
-			printf("can not load the font file(\"/NotoSerif - Medium.ttf\")");
-			return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
-		case INIT_DISPLAY_IMG_NOT_FOUND:
-			printf("can not found/load the png files(\"mouseIcon.png or dogIcon.png\")");
-			return INIT_DISPLAY_IMG_NOT_FOUND;
-		}
-		// ------ End of Handling -------------------------------------
-	}
+	char init_result = initializeDisplay();
+	if (init_result == INIT_DISPLAY_SUCCESS)
+		printf("The display created successfully!");
+	else
+		return init_result;
 	printEmptyBoard();
 	printPlayers();
 	printDiceBoard(1);
@@ -87,13 +101,12 @@ int main() {
 	al_flip_display(); // refresh the view
 
 	al_install_keyboard();
-	ALLEGRO_EVENT_QUEUE* ev_queue = al_create_event_queue();
-	al_register_event_source(ev_queue, al_get_display_event_source(display));
-	al_register_event_source(ev_queue, al_get_keyboard_event_source());
+	EVQ = al_create_event_queue();
+	al_register_event_source(EVQ, al_get_display_event_source(display));
+	al_register_event_source(EVQ, al_get_keyboard_event_source());
 	ALLEGRO_EVENT event;
 	// only for test this section , this is going to be changed as soon as possible
-	gameLoop(ev_queue, &event,NO_MOVE);
-	return 0;
+	gameLoop(EVQ, &event, NO_MOVE);
 }
 
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
@@ -171,29 +184,68 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 char initializeDisplay() {
 	if (!al_init()) return INIT_DISPLAY_ALLEGRO_ERR;
 	display = al_create_display((SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE + SCORE_BOARD_WIDTH, (SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE);
-	if (!display) return INIT_DISPLAY_ERR;
-	if (!al_init_primitives_addon()) return INIT_DISPLAY_PRIMITIVES_ERR;
-	if (!al_init_font_addon()) return INIT_DISPLAY_FONT_ERR;
-	if (!al_init_image_addon()) return INIT_DISPLAY_IMAGE_ADDON_ERR;
-	if (!al_init_ttf_addon()) return INIT_DISPLAY_TRUETYPE_FONT_ERR;
+	if (!display) {
+		showError(NULL, "Create display failed", "Please try again!");
+		return INIT_DISPLAY_ERR;
+	}
+	if (!al_init_primitives_addon()) {
+		showError(display, "Failed to load allegro-addons", "the allegro-primitives addon cannot be initialized!"
+			"\n please check the library exist.");
+		return INIT_DISPLAY_PRIMITIVES_ERR;
+	}
+	if (!al_init_font_addon()) {
+		showError(display, "Failed to load allegro-addons", "the allegro-font addon cannot be initialized!"
+			"\n please check the library exist.");
+		return INIT_DISPLAY_FONT_ERR;
+	}
+	if (!al_init_image_addon()) {
+		showError(display, "Failed to load allegro-addons", "the allegro-image addon cannot be initialized!"
+			"\n please check the library exist.");
+		return INIT_DISPLAY_IMAGE_ADDON_ERR;
+	}
+	if (!al_init_ttf_addon()) {
+		showError(display, "Failed to load allegro-addons", "the allegro-TrueTypeFont(ttf.) addon cannot be initialized!"
+			"\n please check the library exist.");
+		return INIT_DISPLAY_TRUETYPE_FONT_ERR;
+	}
 	Font = al_load_ttf_font("src/NotoSerif-Medium.ttf", 24, 0);
-	if (!Font) return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
+	if (!Font) {
+		showNotFoundErr(display, "Font", "src/NotoSerif-Medium.ttf");
+		return INIT_DISPLAY_FONT_NOT_FOUND_ERR;
+	}
 	char temp[14];
 	for (int i = 0; i < DOG_COUNT; i++) {
 		sprintf(temp, "src/dog%d.png", i + 1);
 		dogIcon[i] = al_load_bitmap(temp);
-		if (!dogIcon[i]) return INIT_DISPLAY_IMG_NOT_FOUND;
+		if (!dogIcon[i]) {
+			showNotFoundErr(display, "Image", temp);
+			return INIT_DISPLAY_IMG_NOT_FOUND;
+		}
 	}
 	// --- load images --- dices
 	for (int i = 0; i <= 6; i++) {
 		sprintf(temp, "src/dice%d.png", i);
 		diceIcon[i] = al_load_bitmap(temp);
-		if (!diceIcon[i]) return INIT_DISPLAY_IMG_NOT_FOUND;
+		if (!diceIcon[i]) {
+			showNotFoundErr(display, "Image", temp);
+			return INIT_DISPLAY_IMG_NOT_FOUND;
+		}
 	}
 	mouseIcon = al_load_bitmap("src/mouse.png");
 	chocoIcon = al_load_bitmap("src/chocolate.png");
 	fishIcon = al_load_bitmap("src/fish.png");
-	if (!mouseIcon || !chocoIcon || !fishIcon) return INIT_DISPLAY_IMG_NOT_FOUND;
+	if (!mouseIcon) {
+		showNotFoundErr(display, "Image", "src/mouse.png");
+		return INIT_DISPLAY_IMG_NOT_FOUND;
+	}
+	if (!chocoIcon) {
+		showNotFoundErr(display, "Image", "src/chocolate.png");
+		return INIT_DISPLAY_IMG_NOT_FOUND;
+	}
+	if (!fishIcon) {
+		showNotFoundErr(display, "Image", "src/fish.png");
+		return INIT_DISPLAY_IMG_NOT_FOUND;
+	}
 	al_set_window_position(display, 300, 40);
 	al_set_display_icon(display, img);
 	return INIT_DISPLAY_SUCCESS;
@@ -207,6 +259,7 @@ void freeCache() {
 	al_destroy_bitmap(fishIcon);
 	al_destroy_bitmap(mouseIcon);
 	al_destroy_font(Font);
+	al_destroy_event_queue(EVQ);
 	al_destroy_display(display);
 }
 
@@ -263,6 +316,10 @@ void printScoreBoard() {
 	}
 }
 
+// prints the dice board ... has three states
+// 1-the dices have no value and the table is empty and unknown
+// 2-the dices have value but not fixed then just print those at the unknown (gray) location
+// 3-the dices have correct values and then resume the game
 void printDiceBoard(char mode) {
 	float h = al_get_font_line_height(Font);  //get the height of a line of text then multiply 2
 	const float x = BOARD_SIZE * k;
@@ -555,11 +612,13 @@ void nextPlayer() {
 	}
 }
 
+// for finishing the game
 void finishBoard() { 
 	freeCache();
 	exit(0); 
 }
 
+// prints the dice (should T press) Hint
 void printDiceHint(char shown) {
 	const int x = k * BOARD_SIZE + SCORE_BOARD_WIDTH / 2; //the basic left offset
 	const int w = al_get_text_width(Font, "Please press T for rolling dices!");
