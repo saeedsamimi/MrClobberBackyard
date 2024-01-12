@@ -27,8 +27,8 @@ typedef struct {
 int getFontLineHeight();
 void drawRectangle(GBUTTON*);
 void setBtn(GBUTTON*, float, float, float, float,const char[15],ALLEGRO_BITMAP**);
-char inRectangle(const GBUTTON*, int, int);
-void paint(const GBUTTON*, int);
+char inRectangle(GBUTTON*, int, int);
+void paint(GBUTTON*, int);
 void resetRectangleColor(GBUTTON*);
 void setRectangleColor(GBUTTON*, ALLEGRO_COLOR);
 
@@ -118,7 +118,7 @@ int runStartWin() {
 	}
 }
 
-void paint(const GBUTTON* rects, int n) {
+void paint(GBUTTON* rects, int n) {
 	al_clear_to_color(COLOR4);
 	const int W = al_get_bitmap_width(img);
 	al_draw_scaled_bitmap(img, 0, 0, W, W, START_WIDTH / 4, 50, START_WIDTH / 2, START_WIDTH / 2, 0);
@@ -148,14 +148,14 @@ int getFontLineHeight() {
 	return store ? store : (store = al_get_font_line_height(Font));
 }
 
-void drawRectangle(const GBUTTON* rect) {
+void drawRectangle(GBUTTON* rect) {
 	int h = al_get_bitmap_width(*(rect->imgPointer));
 	al_draw_scaled_bitmap(*(rect->imgPointer), 0, 0, h, h, rect->right ? rect->x + rect->width + 5: rect->x - 65, rect->y + 5, 55, 55, 0);
 	al_draw_rectangle(rect->x, rect->y, rect->x + rect->width, rect->y + rect->height, rect->color, 2);
 	al_draw_text(Font, rect->color, rect->x + rect->width / 2, rect->y + rect->height / 2 - getFontLineHeight() / 2, ALLEGRO_ALIGN_CENTER, rect->text);
 }
 
-char inRectangle(const GBUTTON* rect, int x, int y) {
+char inRectangle(GBUTTON* rect, int x, int y) {
 	const float right = rect->x + rect->width, bottom = rect->y + rect->height;
 	return x < right && y < bottom && x > rect->x && y > rect->y;
 }

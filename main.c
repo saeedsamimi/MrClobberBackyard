@@ -12,12 +12,13 @@
 #include "windows/startWin.h"
 #include "windows/error.h"
 #include "windows/finishWin.h"
+#include <locale.h>
 #include <limits.h>
 #ifdef _WIN32
-// Windows-specific includes
+// WindowsX32-specific includes
 #include <windows.h>
 #elif _WIN64
-// Windows-specific includes
+// WindowsX64-specific includes
 #include <windows.h>
 #elif __linux__
 // Linux-specific includes
@@ -49,6 +50,7 @@ void freeCache();             // free cache such as pictures and displays and fo
 void finishBoard();           // for finishing game
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
 void GUI();
+void closeApp();
 ALLEGRO_FONT* Font;           // as like as it's name this is a main font configuration
 int currentPlayer;        // as like as it's name stores the current player index
 int currentIndex = 0;
@@ -61,6 +63,7 @@ int indicateSort[4] = { 0 };
 char diceRolled = 0;
 
 int main() {
+	setlocale(LC_ALL, "UTF-8");
 #ifdef _WIN32
 	HWND hWnd = GetConsoleWindow();
 	ShowWindow(hWnd, SW_HIDE);
@@ -80,21 +83,25 @@ int main() {
 }
 
 void GUI() {
+	if (!forceCreateDir("save")) {
+		showError(NULL, "the save folder corrupted!", "the save folder cannot be created with force please check the folder permissions have gotten");
+		exit(1);
+	}
 	setMap();
 	switch (runStartWin()) {
 	case -1:
 		printf("an error occured!");
-		return 1;
+		exit(1);
 	case 2:
 		printf("PROGRAM FINISHED.\n");
-		return 0;
+		exit(0);
 	}
-	__testMap();
+	// deleting unneccary tests
 	char init_result = initializeDisplay();
 	if (init_result == INIT_DISPLAY_SUCCESS)
 		printf("The display created successfully!");
 	else
-		return init_result;
+		exit(init_result);
 	printEmptyBoard();
 	printPlayers();
 	printDiceBoard(1);
@@ -121,13 +128,16 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		al_flip_display();
 	}
 	al_wait_for_event(ev_queue, ev);
-	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
+	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+		closeApp();
+		gameLoop(ev_queue, ev, NO_MOVE);
+	}
 	while (diceRolled != 1) {
 		if (ev->type == ALLEGRO_EVENT_KEY_UP && ev->keyboard.keycode == ALLEGRO_KEY_T) {
 			printDiceBoard(0);
 			al_flip_display();
 		}
-		else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) return;
+		else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) closeApp();
 		if(diceRolled != 1) al_wait_for_event(ev_queue, ev);
 	}
 	printDiceHint(0);
@@ -140,7 +150,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
 				nextPlayer();
 			}
-			__testMap();
 			break;
 		case ALLEGRO_KEY_D:
 		case ALLEGRO_KEY_RIGHT:
@@ -148,7 +157,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
 				nextPlayer();
 			}
-			__testMap();
 			break;
 		case ALLEGRO_KEY_W:
 		case ALLEGRO_KEY_UP:
@@ -156,7 +164,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
 				nextPlayer();
 			}
-			__testMap();
 			break;
 		case ALLEGRO_KEY_S:
 		case ALLEGRO_KEY_DOWN:
@@ -164,12 +171,12 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
 				nextPlayer();
 			}
-			__testMap();
 			break;
 		}
 	}
 	// ---- REMOVE THIS SECTION ----
-	printEmptyBoard();
+	clearMouses();
+	clearDogs();
 	printCats();
 	indicatePlayer();
 	printChocolatesAndFishes();
@@ -178,7 +185,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 	printScoreBoard();
 	//------------------------------
 	al_flip_display();
-	gameLoop(ev_queue, ev,NO_MOVE);
+	gameLoop(ev_queue, ev, NO_MOVE);
 }
 
 // -- init -- allegro display settings
@@ -501,8 +508,6 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 		cats[currentPlayer].y = newY;
 		
 		clearSquare(cats[currentPlayer].x, cats[currentPlayer].y);
-		printCats();
-		printChocolatesAndFishes();
 	}
 }
 
@@ -625,4 +630,19 @@ void printDiceHint(char shown) {
 	al_draw_filled_rectangle(x - w / 2 - 10, h - fontH / 2, x + w / 2 + 10, 1.5 * fontH + h, shown ? COLOR2 : WHITE);
 	if (shown)
 		al_draw_text(Font, BLACK, x, h, ALLEGRO_ALIGN_CENTER, "Please press T for rolling dices!");
+}
+
+void closeApp() {
+	int exitResult = al_show_native_message_box(
+		display,
+		"Exit",
+		"Are you sure to exit?",
+		"if you exit from game manualy the certain state of this game won't be saved!\n and you cannot resume the game next time!",
+		NULL,
+		ALLEGRO_MESSAGEBOX_YES_NO);
+	if (exitResult == 1) {
+		freeCache();
+		al_destroy_font(Font);
+		exit(0);
+	}
 }

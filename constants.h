@@ -4,8 +4,9 @@
 #define SQUARE_SIZE 60
 #define MARGIN 3
 #define SCORE_BOARD_WIDTH 500
+
 // a static constant object which is stores the table titles
-const char TITLES[][7] = { "Player","Energy", "Power","Point" };
+char TITLES[][7] = { "Player","Energy", "Power","Point" };
 
 ALLEGRO_COLOR BLUE;
 ALLEGRO_COLOR GREEN;

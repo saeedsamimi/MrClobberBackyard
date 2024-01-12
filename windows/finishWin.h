@@ -1,12 +1,19 @@
 #pragma once
 #include "allegro5/allegro.h"
+#include "allegro5/allegro_native_dialog.h"
 #include "../map.h"
+#include "../test.h"
 #include "startWin.h"
+#include "../save/fileManager.h"
 
 #define FINISH_WIDTH 1000
 #define FINISH_HEIGHT 700
 #define FINISH_MSPACER 10
 #define FINISH_TOP 200
+
+ALLEGRO_FONT* HeadFont;
+char running = 1;
+ALLEGRO_TEXTLOG* textLog;
 
 char cmp(CAT*,CAT*);
 
@@ -14,7 +21,7 @@ void qSort(CAT* A, int start, int end) {
 	if (end > start) {
 		int i = start, j = end - 1;
 		CAT temp;
-		while (j >= i) {
+		while (j >= i)
 			if (cmp(A + end,A+i)) {
 				temp = A[i];
 				A[i--] = A[j];
@@ -22,7 +29,6 @@ void qSort(CAT* A, int start, int end) {
 			}
 			else
 				i++;
-		}
 		temp = A[end];
 		A[end] = A[i];
 		A[i] = temp;
@@ -44,7 +50,9 @@ void FinishWinPaint(ALLEGRO_FONT* FONT) {
 	}
 	for (int i = 0; i < CAT_COUNT; i++) {
 		y += tableIH;
-		for (int j = 0; j < 4; j++) {
+		x = FINISH_MSPACER;
+		al_draw_filled_rectangle(x, y, x + tableIW, y + tableIH, cats[i].color);
+		for (int j = 1; j < 4; j++) {
 			x = j * tableIW + FINISH_MSPACER;
 			al_draw_rectangle(x, y, x + tableIW, y + tableIH, BLACK, 2.);
 		}
@@ -62,8 +70,7 @@ void FinishWinPaint(ALLEGRO_FONT* FONT) {
 		al_draw_textf(FONT, BLACK, x, y + textOffset, ALLEGRO_ALIGN_CENTER, "%d", cats[i].mousePoint);
 	}
 	al_destroy_font(FONT);
-	FONT = al_load_ttf_font("src/NotoSerif-Medium.ttf", 60, 0);
-	al_draw_text(FONT, BLACK, FINISH_MSPACER, (FINISH_TOP - al_get_font_line_height(FONT))/2, 0, "The game's result: ");
+	al_draw_text(HeadFont, BLACK, FINISH_MSPACER, (FINISH_TOP - al_get_font_line_height(FONT))/2, 0, "The game's result: ");
 	int W = al_get_bitmap_width(img);
 	const float dw = FINISH_TOP - 2 * FINISH_MSPACER;
 	al_draw_scaled_bitmap(img, 0, 0, W, W, FINISH_WIDTH - FINISH_MSPACER - dw, FINISH_MSPACER, dw, dw, 0);
@@ -83,12 +90,58 @@ char cmp(CAT *c1, CAT *c2) {
 	return 0;
 }
 
+void eventHandler(ALLEGRO_DISPLAY* buff,CAT Players[CAT_COUNT]) {
+	ALLEGRO_EVENT_QUEUE* ev_queue = al_create_event_queue();
+	ALLEGRO_EVENT ev;
+	int dlgResult;
+	al_register_event_source(ev_queue, al_get_display_event_source(buff));
+	while (running) {
+		al_wait_for_event(ev_queue, &ev);
+		switch (ev.type) {
+		case ALLEGRO_EVENT_DISPLAY_CLOSE:
+			dlgResult = al_show_native_message_box(
+				buff,
+				"exit? ",
+				"Are you sure to exit? ",
+				"if you click \"YES\" the state of the game will be saved!\nif you click \"NO\" the game won't be saved.",
+				NULL,
+				ALLEGRO_MESSAGEBOX_YES_NO);
+			if (dlgResult == 1) {
+				FILE* file = createFile("./save/state.txt",buff);
+				int saveResult;
+				showError(buff, "Save state", (saveResult = writeOnFile(file)) ? "Yes saved" : "File cannot be saved! please try again.");
+				if (saveResult) {
+					al_destroy_display(buff);
+					al_destroy_font(HeadFont);
+					al_destroy_bitmap(img);
+					running = 0;
+				}
+			}
+			else if(dlgResult == 2) {
+				al_destroy_display(buff);
+				al_destroy_font(HeadFont);
+				al_destroy_bitmap(img);
+				running = 0;
+			}
+			break;
+		}
+	}
+	exit(0);
+}
+
 void runFinishWin(ALLEGRO_FONT *FONT,ALLEGRO_DISPLAY *buff,CAT Players[CAT_COUNT]) {
 	qSort(Players, 0, CAT_COUNT - 1);
 	buff = al_create_display(FINISH_WIDTH, FINISH_HEIGHT);
 	al_set_display_icon(buff, img);
+	HeadFont = al_load_ttf_font("src/NotoSerif-Medium.ttf", 60, 0);
+	if (!HeadFont) {
+		showNotFoundErr(buff, "font", "src/NotoSerif-Medium.ttf");
+		showError(buff, "the font cannot load", "but the content of the game was saved in the local storage!");
+		exit(1);
+	}
 	al_clear_to_color(WHITE);
 	FinishWinPaint(FONT);
+	eventHandler(buff,Players);
 	al_rest(10);
 	exit(0);
 }
