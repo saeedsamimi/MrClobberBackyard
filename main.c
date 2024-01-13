@@ -5,6 +5,7 @@
 #include "allegro5/allegro_ttf.h"
 #include "allegro5/allegro_image.h"
 #include "map.h"
+#include "save/fileManager.h"
 #include "test.h"
 #include "constants.h"
 #include "logics/logics.h"
@@ -52,8 +53,8 @@ void finishBoard();
 void moveCurrentPlayerOnBoard(int, int);
 void GUI();
 void closeApp();
-int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
-char currentPlayerMoves = 1, diceRolled = 0;
+//int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
+char diceRolled = 0;
 ALLEGRO_FONT* Font;
 ALLEGRO_DISPLAY* display;
 ALLEGRO_BITMAP* dogIcon[CAT_COUNT], * diceIcon[7], * mouseIcon, * chocoIcon, * fishIcon, * freezeIcon, * catIcon;
@@ -82,16 +83,22 @@ int main() {
 
 // after hiding the console this GUI will be appear
 void GUI() {
-	setMap();
-	__testMap();
+	bool resume = false;
+	__initColors();
 	switch (runStartWin()) {
 	case -1:
-		printf("an error occured!");
 		exit(1);
 	case 2:
-		printf("PROGRAM FINISHED.\n");
 		exit(0);
+	case 1:
+		setMap();
+		break;
+	case 3:
+		diceRolled = 1;
+		resume = true;
+		break;
 	}
+	__testMap();
 	if (!forceCreateDir("save")) {
 		showError(NULL, "the save folder corrupted!", "the save folder cannot be created with force please check the folder permissions have gotten");
 		exit(1);
@@ -102,7 +109,11 @@ void GUI() {
 		exit(init_result);
 	printEmptyBoard();
 	printPlayers();
-	printDiceBoard(1);
+	printDiceBoard(!resume);
+	if (resume) {
+		printScoreBoard();
+		indicatePlayer();
+	}
 
 	al_flip_display(); // refresh the view
 
@@ -352,22 +363,19 @@ void printDiceBoard(char mode) {
 	const float diceW = SCORE_BOARD_WIDTH / 4 - MARGIN;
 	const float diceH = diceW + 2 * MARGIN + 3 * h;
 	// printDiceBoard
+	al_draw_filled_rectangle(x, y, x + SCORE_BOARD_WIDTH, y + diceH, al_map_rgb(220, 220, 220));
 	if (!mode) {
-		if (diceRolled == 0) {
+		if (diceRolled == 0)
 			diceRolled = toIndex(indicateSort) ? 1 : 2;
-		}
 		else {
 			improveIndexes(indicateSort);
 			diceRolled = 1;
 		}
-		if (diceRolled != 2) {
+		if (diceRolled != 2) 
 			currentPlayer = indicateSort[currentIndex];
-			printf("current player: %d with index %d\n", currentPlayer, currentIndex);
-		}
 	}
 	else {
 		diceRolled = 0;
-		al_draw_filled_rectangle(x, y, x + SCORE_BOARD_WIDTH, y + diceH, al_map_rgb(220, 220, 220));
 		for (int i = 0; i < CAT_COUNT; i++) {
 			__drawScaledPhoto(diceIcon[0], x + i * (diceW + MARGIN) + MARGIN, y + MARGIN, diceW);
 			float cx = x + i * (diceW + MARGIN) + MARGIN + diceW / 2;
@@ -438,13 +446,14 @@ void __drawScaledPhoto(ALLEGRO_BITMAP* img, float x, float y, float w) {
 // print initial players only once
 // this function prints all types of models
 void printPlayers() {
-	// ------ print ---- cat
-	float x = k * (cats[0].x + .25);
-	float y = k * (cats[0].y + .25);
-	for (int i = 0; i < CAT_COUNT; i++) 
-		al_draw_filled_circle(x + ((i % 2) ? k / 2 : 0),
-			y + ((i > 1) ? k / 2 : 0), 0.2 * SQUARE_SIZE, cats[i].color);
-	// ------ endPrint-- cat
+	//// ------ print ---- cat
+	//float x = k * (cats[0].x + .25);
+	//float y = k * (cats[0].y + .25);
+	//for (int i = 0; i < CAT_COUNT; i++) 
+	//	al_draw_filled_circle(x + ((i % 2) ? k / 2 : 0),
+	//		y + ((i > 1) ? k / 2 : 0), 0.2 * SQUARE_SIZE, cats[i].color);
+	//// ------ endPrint-- cat
+	printCats();
 	printDogs();
 	printMouses();
 	printChocolatesAndFishes();
@@ -674,15 +683,27 @@ void printDiceHint(char shown) {
 		al_draw_text(Font, BLACK, x, h, ALLEGRO_ALIGN_CENTER, "Please press T for rolling dices!");
 }
 
+//prevent unsure exits
 void closeApp() {
 	int exitResult = al_show_native_message_box(
 		display,
 		"Exit",
-		"Are you sure to exit?",
-		"if you exit from game manualy the certain state of this game won't be saved!\n and you cannot resume the game next time!",
+		"Do you want to save the file?",
+		"if you click \"YES\" the game state will be save automatically",
 		NULL,
 		ALLEGRO_MESSAGEBOX_YES_NO);
 	if (exitResult == 1) {
+		gameState temp;
+		generateGameSate(&temp);
+		// if game saved successfully . then please close the application and exit
+		if (!saveGameState("./save/game.dat", &temp, display))
+		{
+			freeCache();
+			al_destroy_font(Font);
+			exit(0);
+		}
+	}
+	else {
 		freeCache();
 		al_destroy_font(Font);
 		exit(0);

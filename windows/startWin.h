@@ -5,6 +5,9 @@
 #include "allegro5/allegro_primitives.h"
 #include "allegro5/allegro_ttf.h"
 #include "allegro5/allegro_font.h"
+#include "allegro5/allegro_native_dialog.h"
+#include "../save/fileManager.h"
+#include "../test.h"
 #include "allegro5/allegro_image.h"
 #include "../constants.h"
 
@@ -93,6 +96,18 @@ int runStartWin() {
 						al_destroy_bitmap(icons[i]);
 					al_rest(.5);
 					return 1;
+				}
+				else if (i == 1 && inRectangle(rects + i, e.mouse.x, e.mouse.y)) {
+					gameState temp;
+					if (loadGameState("./save/game.dat", Display, &temp)) {
+						enableGameState(&temp);
+						al_destroy_display(Display);
+						al_destroy_font(Font);
+						for (int i = 0; i < 4; i++)
+							al_destroy_bitmap(icons[i]);
+						al_rest(.5);
+					}
+					return 3;
 				}
 				else if (i == 3 && inRectangle(rects + i, e.mouse.x, e.mouse.y)) {
 					al_destroy_display(Display);
