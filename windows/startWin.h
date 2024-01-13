@@ -57,7 +57,7 @@ int runStartWin() {
 		setBtn(rects + i, i % 2 ? -30 : 30, i * (getFontLineHeight() * 2 + 10), 400, getFontLineHeight() * 2, titles[i],icons + i);
 		rects[i].right = i % 2;
 	}
-	paint(rects, 1);
+	paint(rects, 4);
 	ALLEGRO_EVENT_QUEUE* ev_queue = al_create_event_queue();
 	al_install_keyboard();
 	al_install_mouse();

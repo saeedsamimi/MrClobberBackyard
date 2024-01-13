@@ -30,39 +30,35 @@
 
 void printAcceptMove(char);
 void printDiceHint(char);
-void printDiceBoard(char);     // for printing the dice board in the area
+void printDiceBoard(char);
 void __drawScaledPhoto(ALLEGRO_BITMAP*, float, float, float);
-void printEmptyBoard();       // print initialized map with walls but no player placed at squares
-char initializeDisplay();     // allegro display initialization and handling errors
-void printPlayers();          // print all of the players such as cat, dog, mouse, and more(except walls)
-void clearCats();             // to clear all cats locatio on board
-void printCats();             // for printing cats
-void clearDogs();             // clear previous dogs
-void printDogs();             // print new dogs
-void clearMouses();           // clear previous mouses
-void printMouses();           // print new mouses
-void printChocolatesAndFishes(); // print all cholates and fishes finally
-void nextPlayer(bool);            // switch to the next player
-void indicatePlayer();        // indicate the current player in the playboard
-void printScoreBoard();       // a function to show side score board menu
-void clearSquare(int, int);   // clear the custom square to redifne new character
-void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
-void freeCache();             // free cache such as pictures and displays and fonts
-void finishBoard();           // for finishing game
-void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
+void printEmptyBoard();
+char initializeDisplay();
+void printPlayers();
+void clearCats();
+void printCats();
+void clearDogs();
+void printDogs();
+void clearMouses();
+void printMouses();
+void printChocolatesAndFishes();
+void nextPlayer(bool);
+void indicatePlayer();
+void printScoreBoard();
+void clearSquare(int, int);
+void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*);
+void freeCache();
+void finishBoard();
+void moveCurrentPlayerOnBoard(int, int);
 void GUI();
 void closeApp();
-ALLEGRO_FONT* Font;           // as like as it's name this is a main font configuration
-int currentPlayer;        // as like as it's name stores the current player index
-char currentPlayerMoves = 1;
-int currentIndex = 0;
-int currentRound = 1;         // as like as it's name it stroes the current round information
-ALLEGRO_DISPLAY* display;     // as like as it's name stores the information about allegro display
-ALLEGRO_BITMAP* dogIcon[CAT_COUNT], *diceIcon[7], * mouseIcon, * chocoIcon, * fishIcon;          // dog and mouse icon bitmap
+int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
+char currentPlayerMoves = 1, diceRolled = 0;
+ALLEGRO_FONT* Font;
+ALLEGRO_DISPLAY* display;
+ALLEGRO_BITMAP* dogIcon[CAT_COUNT], *diceIcon[7], * mouseIcon, * chocoIcon, * fishIcon;
 ALLEGRO_EVENT_QUEUE* EVQ;
-const short int k = SQUARE_SIZE + 2 * MARGIN; // a helpfull number to save the size of each box
-int indicateSort[4] = { 0 };
-char diceRolled = 0;
+const short int k = SQUARE_SIZE + 2 * MARGIN;
 
 int main() {
 	setlocale(LC_ALL, "en-US.UTF-8");
@@ -84,6 +80,7 @@ int main() {
 	return 0;
 }
 
+// after hiding the console this GUI will be appear
 void GUI() {
 	setMap();
 	switch (runStartWin()) {
@@ -122,77 +119,81 @@ void GUI() {
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 	//------- Check For Game Roundes -------
-	if(currentRound>ROUNDS_NUMBER) finishBoard();
-	if (!diceRolled) {
-		clearCats();
-		printCats();
-		printDiceHint(1);
-		printAcceptMove(0);
-		al_flip_display();
-	}
-	al_wait_for_event(ev_queue, ev);
-	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-		closeApp();
-		gameLoop(ev_queue, ev);
-	}
-	while (diceRolled != 1) {
-		if (ev->type == ALLEGRO_EVENT_KEY_UP && ev->keyboard.keycode == ALLEGRO_KEY_T) {
-			printDiceBoard(0);
+	while (1) {
+		if (currentRound > ROUNDS_NUMBER) finishBoard();
+		// if the dice not rolled please roll it!
+		if (!diceRolled) {
+			clearCats();
+			printCats();
+			printDiceHint(1);
+			printAcceptMove(0);
 			al_flip_display();
 		}
-		else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) closeApp();
-		if(diceRolled != 1) al_wait_for_event(ev_queue, ev);
-	}
-	printDiceHint(0);
-	clearMouses();
-	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
-		al_flip_display();
-		switch (ev->keyboard.keycode) {
-		case ALLEGRO_KEY_A:
-		case ALLEGRO_KEY_LEFT:
-			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)) {
-				moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
-				nextPlayer(0);
+		al_wait_for_event(ev_queue, ev);
+		while (diceRolled != 1) {
+			if (ev->type == ALLEGRO_EVENT_KEY_UP && ev->keyboard.keycode == ALLEGRO_KEY_T) {
+				printDiceBoard(0);
+				al_flip_display();
 			}
-			break;
-		case ALLEGRO_KEY_D:
-		case ALLEGRO_KEY_RIGHT:
-			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
-				moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
-				nextPlayer(0);
-			}
-			break;
-		case ALLEGRO_KEY_W:
-		case ALLEGRO_KEY_UP:
-			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
-				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
-				nextPlayer(0);
-			}
-			break;
-		case ALLEGRO_KEY_S:
-		case ALLEGRO_KEY_DOWN:
-			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
-				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
-				nextPlayer(0);
-			}
-			break;
-		case ALLEGRO_KEY_M:
-			if (currentPlayerMoves > 1)
-				nextPlayer(1);
-			break;
+			// if user wants to exit prevent!
+			else if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+				showError(display, "cannot exit", "you cannot exit while rolling dices!");
+			// wait until next event occuredW
+			if (diceRolled != 1)
+				al_wait_for_event(ev_queue, ev);
 		}
+		printDiceHint(0);
+		clearMouses();
+		if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+			closeApp();
+		if (ev->type == ALLEGRO_EVENT_KEY_UP) {
+			al_flip_display();
+			switch (ev->keyboard.keycode) {
+			case ALLEGRO_KEY_A:
+			case ALLEGRO_KEY_LEFT:
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)) {
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
+					nextPlayer(0);
+				}
+				break;
+			case ALLEGRO_KEY_D:
+			case ALLEGRO_KEY_RIGHT:
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
+					nextPlayer(0);
+				}
+				break;
+			case ALLEGRO_KEY_W:
+			case ALLEGRO_KEY_UP:
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
+					nextPlayer(0);
+				}
+				break;
+			case ALLEGRO_KEY_S:
+			case ALLEGRO_KEY_DOWN:
+				if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
+					moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
+					nextPlayer(0);
+				}
+				break;
+			case ALLEGRO_KEY_M:
+				if (currentPlayerMoves > 1)
+					nextPlayer(1);
+				break;
+			}
+		}
+		// ---- REMOVE THIS SECTION ----
+		clearDogs();
+		printCats();
+		indicatePlayer();
+		printChocolatesAndFishes();
+		printDogs();
+		printMouses();
+		printScoreBoard();
+		//------------------------------
+		al_flip_display();
 	}
-	// ---- REMOVE THIS SECTION ----
-	clearDogs();
-	printCats();
-	indicatePlayer();
-	printChocolatesAndFishes();
-	printDogs();
-	printMouses();
-	printScoreBoard();
-	//------------------------------
-	al_flip_display();
-	gameLoop(ev_queue, ev);
 }
 
 // -- init -- allegro display settings
@@ -606,7 +607,7 @@ void nextPlayer(bool forceAccept) {
 	if (cats[currentPlayer].defencePoint < 0 ||
 		currentPlayerMoves >= cats[currentPlayer].defencePoint ||
 		currentPlayerMoves >= 3 || (forceAccept && currentPlayerMoves > 1)) {
-		cats[currentPlayer].defencePoint -= cats[currentPlayer].defencePoint > currentPlayerMoves ? currentPlayerMoves : 0;
+		cats[currentPlayer].defencePoint -= (cats[currentPlayer].defencePoint >= currentPlayerMoves) ? currentPlayerMoves : 0;
 		if (currentIndex == CAT_COUNT - 1) {
 			// Add Defence Point to add players one unit
 			for (int cat_index = 0; cat_index < CAT_COUNT; cat_index++) {
