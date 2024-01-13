@@ -211,8 +211,8 @@ void releaseMice(int count) {
   for(int i=0;i<MOUSE_COUNT;i++) {
     if(count <= 0) break;
     if(mouses[i].points == INVALID_MOUSE_POINT) {
-      int mouse_point = mouses[i].mouse_type;
-      mouses[i].points = mouse_point;
+      // this is simpler
+      mouses[i].points = mouses[i].mouse_type;
       // Select location for released mouses 
       MOUSE current_mouse;
       current_mouse = mouses[i];
@@ -236,7 +236,6 @@ void releaseMice(int count) {
 
 
 void mouseRandomMove() {
-  
   int direction_number;
   enum MOVEMENT movement = NO_MOVE;
   int new_x;
@@ -344,7 +343,7 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
       if(catPoint >= dogPoint) {
         // Cat is winner
         // Reduce Cat power
-        cats[index].defencePoint -= (dogDefencePoint / catDefencePoint) * dogAttackPoint; 
+        cats[index].defencePoint -= (dogDefencePoint / catDefencePoint) * dogAttackPoint;
         // Removing Dog
         fighting_dog.x = REMOVED_DOG;
         fighting_dog.y = REMOVED_DOG;
@@ -352,8 +351,6 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
         //Dog is winner
         //Cat should be freeze
         cats[index].freeze = -3;
-        printf("IM DOG %d AT %d,%d AND I WON\n",fighting_dog_index,fighting_dog.x,fighting_dog.y);
-        printf("CAT %d AT %d,%d FREEZED\n",index,cats[index].x,cats[index].y);
         //Cat & Dog power reduction
         cats[index].attackPoint = 2;
         cats[index].defencePoint = 5;
@@ -394,10 +391,10 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
           cats[index].mousePoint += fighting_cat.mousePoint;
           fighting_cat.mousePoint = 0;
           // reducing power
+          cats[index].defencePoint -= (fighting_cat.defencePoint / cats[index].defencePoint) * fighting_cat.attackPoint;
+          if (cats[index].defencePoint > 65000) cats[index].defencePoint = 0;
           fighting_cat.attackPoint = 2;
           fighting_cat.defencePoint = 5;
-          cats[index].defencePoint -= (fighting_cat.defencePoint / cats[index].defencePoint) * fighting_cat.attackPoint;
-
         }else if(fightingCatPoint > curretCatPoint) {
           // Fighting cat is winner
           // Freeze current Cat
@@ -408,9 +405,10 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
           fighting_cat.mousePoint += cats[index].mousePoint;
           cats[index].mousePoint = 0;
           // reducing power
+          fighting_cat.defencePoint -= (cats[index].defencePoint / fighting_cat.defencePoint) * cats[index].attackPoint;
+          if (fighting_cat.defencePoint > 65000) fighting_cat.defencePoint = 0;
           cats[index].attackPoint = 2;
           cats[index].defencePoint = 5;
-          fighting_cat.defencePoint -= (cats[index].defencePoint / fighting_cat.defencePoint) * cats[index].attackPoint;
         }
         cats[fighting_cat_index] = fighting_cat;
       }
@@ -459,17 +457,4 @@ int trap(int x,int y,int index) {
     //---------------------------------------------------
   }
   return 0;
-}
-
-void dice(int current_player_index) {
-  //int dice_number = random_function(6) + 1;
-  //dice[current_player_index] = dice_number;
-  //if(current_player_index == CAT_COUNT - 1) {
-    // Time to set players turn based on dices array
-    // First check to see if any of dices are same
-    //If two or more players are same
-     //If it is first round that we dice then dice them again until no same players exist
-        // set dice number as priority for same players
-    //create playersTurn based on dices with paying attention to priority if same players exists
-  //}
 }

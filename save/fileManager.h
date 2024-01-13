@@ -8,8 +8,14 @@
 #include "../map.h"
 
 bool forceCreateDir(const char* dirName) {
-	int result = al_make_directory(dirName);
-	return result == 1;
+	struct stat sb;
+	bool existence = false;
+	bool temp = stat(dirName, &sb);
+	if (!temp && (S_IFDIR & sb.st_mode))
+		existence == true;
+	if(!existence)
+		return al_make_directory(dirName);
+	return true;
 }
 
 bool fileExists(const char* fileName) {
@@ -18,11 +24,10 @@ bool fileExists(const char* fileName) {
 }
 
 FILE* createFile(const char*fileName,ALLEGRO_DISPLAY *displayBuff) {
-	FILE* newFile = fopen(fileName, fileExists(fileName) ? "a" : "w");
-	if (!newFile) {
+	bool existence = fileExists(fileName);
+	FILE* newFile = fopen(fileName, existence ? "at" : "wt");
+	if (!newFile)
 		showError(displayBuff, "File cannot be created", "this file in this location cannot be created! \n");
-		return NULL;
-	}
 	return newFile;
 }
 

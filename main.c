@@ -28,6 +28,7 @@
 #include <unistd.h>
 #endif
 
+void printAcceptMove(char);
 void printDiceHint(char);
 void printDiceBoard(char);     // for printing the dice board in the area
 void __drawScaledPhoto(ALLEGRO_BITMAP*, float, float, float);
@@ -41,11 +42,11 @@ void printDogs();             // print new dogs
 void clearMouses();           // clear previous mouses
 void printMouses();           // print new mouses
 void printChocolatesAndFishes(); // print all cholates and fishes finally
-void nextPlayer();            // switch to the next player
+void nextPlayer(bool);            // switch to the next player
 void indicatePlayer();        // indicate the current player in the playboard
 void printScoreBoard();       // a function to show side score board menu
 void clearSquare(int, int);   // clear the custom square to redifne new character
-void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*,enum MOVEMENT); // the main game loop
+void gameLoop(ALLEGRO_EVENT_QUEUE*, ALLEGRO_EVENT*); // the main game loop
 void freeCache();             // free cache such as pictures and displays and fonts
 void finishBoard();           // for finishing game
 void moveCurrentPlayerOnBoard(int, int);  // switches the current player location
@@ -53,6 +54,7 @@ void GUI();
 void closeApp();
 ALLEGRO_FONT* Font;           // as like as it's name this is a main font configuration
 int currentPlayer;        // as like as it's name stores the current player index
+char currentPlayerMoves = 1;
 int currentIndex = 0;
 int currentRound = 1;         // as like as it's name it stroes the current round information
 ALLEGRO_DISPLAY* display;     // as like as it's name stores the information about allegro display
@@ -63,7 +65,7 @@ int indicateSort[4] = { 0 };
 char diceRolled = 0;
 
 int main() {
-	setlocale(LC_ALL, "UTF-8");
+	setlocale(LC_ALL, "en-US.UTF-8");
 #ifdef _WIN32
 	HWND hWnd = GetConsoleWindow();
 	ShowWindow(hWnd, SW_HIDE);
@@ -83,10 +85,6 @@ int main() {
 }
 
 void GUI() {
-	if (!forceCreateDir("save")) {
-		showError(NULL, "the save folder corrupted!", "the save folder cannot be created with force please check the folder permissions have gotten");
-		exit(1);
-	}
 	setMap();
 	switch (runStartWin()) {
 	case -1:
@@ -95,6 +93,10 @@ void GUI() {
 	case 2:
 		printf("PROGRAM FINISHED.\n");
 		exit(0);
+	}
+	if (!forceCreateDir("save")) {
+		showError(NULL, "the save folder corrupted!", "the save folder cannot be created with force please check the folder permissions have gotten");
+		exit(1);
 	}
 	// deleting unneccary tests
 	char init_result = initializeDisplay();
@@ -114,23 +116,24 @@ void GUI() {
 	al_register_event_source(EVQ, al_get_keyboard_event_source());
 	ALLEGRO_EVENT event;
 	// only for test this section , this is going to be changed as soon as possible
-	gameLoop(EVQ, &event, NO_MOVE);
+	gameLoop(EVQ, &event);
 }
 
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
-void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT previous_move) {
+void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 	//------- Check For Game Roundes -------
 	if(currentRound>ROUNDS_NUMBER) finishBoard();
 	if (!diceRolled) {
 		clearCats();
 		printCats();
 		printDiceHint(1);
+		printAcceptMove(0);
 		al_flip_display();
 	}
 	al_wait_for_event(ev_queue, ev);
 	if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
 		closeApp();
-		gameLoop(ev_queue, ev, NO_MOVE);
+		gameLoop(ev_queue, ev);
 	}
 	while (diceRolled != 1) {
 		if (ev->type == ALLEGRO_EVENT_KEY_UP && ev->keyboard.keycode == ALLEGRO_KEY_T) {
@@ -141,6 +144,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		if(diceRolled != 1) al_wait_for_event(ev_queue, ev);
 	}
 	printDiceHint(0);
+	clearMouses();
 	if (ev->type == ALLEGRO_EVENT_KEY_UP) {
 		al_flip_display();
 		switch (ev->keyboard.keycode) {
@@ -148,34 +152,37 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 		case ALLEGRO_KEY_LEFT:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, LEFT)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x - 1, cats[currentPlayer].y);
-				nextPlayer();
+				nextPlayer(0);
 			}
 			break;
 		case ALLEGRO_KEY_D:
 		case ALLEGRO_KEY_RIGHT:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, RIGHT)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x + 1, cats[currentPlayer].y);
-				nextPlayer();
+				nextPlayer(0);
 			}
 			break;
 		case ALLEGRO_KEY_W:
 		case ALLEGRO_KEY_UP:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, UP)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y - 1);
-				nextPlayer();
+				nextPlayer(0);
 			}
 			break;
 		case ALLEGRO_KEY_S:
 		case ALLEGRO_KEY_DOWN:
 			if (canMove(cats[currentPlayer].x, cats[currentPlayer].y, DOWN)) {
 				moveCurrentPlayerOnBoard(cats[currentPlayer].x, cats[currentPlayer].y + 1);
-				nextPlayer();
+				nextPlayer(0);
 			}
+			break;
+		case ALLEGRO_KEY_M:
+			if (currentPlayerMoves > 1)
+				nextPlayer(1);
 			break;
 		}
 	}
 	// ---- REMOVE THIS SECTION ----
-	clearMouses();
 	clearDogs();
 	printCats();
 	indicatePlayer();
@@ -185,7 +192,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev,enum MOVEMENT pre
 	printScoreBoard();
 	//------------------------------
 	al_flip_display();
-	gameLoop(ev_queue, ev, NO_MOVE);
+	gameLoop(ev_queue, ev);
 }
 
 // -- init -- allegro display settings
@@ -299,7 +306,7 @@ void printScoreBoard() {
 	char t[6];  // use a temp char array for saving the strings of items
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < CAT_COUNT; j++) {
-			al_draw_filled_rectangle(x + i * w, y + indicateSort[j] * h, x + (i + 1) * w, y + (indicateSort[j] + 1) * h,cats[indicateSort[j]].color);
+			al_draw_filled_rectangle(x + i * w, y + indicateSort[j] * h, x + (i + 1) * w, y + (indicateSort[j] + 1) * h, cats[indicateSort[j]].color);
 			// use switch case for print the current column data
 			switch (i) {
 			case 0:
@@ -372,6 +379,17 @@ void printDiceBoard(char mode) {
 			al_draw_text(Font, BLACK, cx, cy - h / 2, ALLEGRO_ALIGN_CENTER, t);
 		}
 	}
+}
+
+// print the PRESS M TO ACCEPT MOVE
+void printAcceptMove(char shown) {
+	const int x = k * BOARD_SIZE + SCORE_BOARD_WIDTH / 2; //the basic left offset
+	const int w = al_get_text_width(Font, "Please press M for accept moves!");
+	const int fontH = al_get_font_line_height(Font);
+	const int h = 14 * fontH + SCORE_BOARD_WIDTH / 4 + MARGIN;
+	al_draw_filled_rectangle(x - w / 2 - 10, h - fontH / 2, x + w / 2 + 10, 1.5 * fontH + h, shown ? COLOR2 : WHITE);
+	if (shown)
+		al_draw_text(Font, BLACK, x, h, ALLEGRO_ALIGN_CENTER, "Please press M for accept moves!");
 }
 
 // print initialized map with walls but no player placed at squares
@@ -584,34 +602,45 @@ void clearSquare(int x, int y) {
 }
 
 // get the next player and then indicate that
-void nextPlayer() {
-	if (currentIndex == CAT_COUNT - 1) {
-		// Add Defence Point to add players one unit
-		for(int cat_index=0;cat_index<CAT_COUNT;cat_index++) {
-			if(cats[cat_index].freeze >= 0) {
-				cats[cat_index].defencePoint++;
-			} else {printf("CAT AT %d,%d IS FREEZE AND BE RELEAZED AT %d ROUNDS\n",cats[cat_index].x,cats[cat_index].y, (-1 * cats[cat_index].freeze) );}
-			cats[cat_index].freeze++;
+void nextPlayer(bool forceAccept) {
+	if (cats[currentPlayer].defencePoint < 0 ||
+		currentPlayerMoves >= cats[currentPlayer].defencePoint ||
+		currentPlayerMoves >= 3 || (forceAccept && currentPlayerMoves > 1)) {
+		cats[currentPlayer].defencePoint -= cats[currentPlayer].defencePoint > currentPlayerMoves ? currentPlayerMoves : 0;
+		if (currentIndex == CAT_COUNT - 1) {
+			// Add Defence Point to add players one unit
+			for (int cat_index = 0; cat_index < CAT_COUNT; cat_index++) {
+				if (cats[cat_index].freeze >= 0)
+					cats[cat_index].defencePoint++;
+				cats[cat_index].freeze++;
+			}
+			//------------------------------------------
+			currentIndex = 0;
+			currentRound++;
+			clearDogs();
+			dogRandomMove();
+			printDogs();
+			mouseRandomMove();
+			printCats();
+			printMouses();
+			printChocolatesAndFishes();
+			printScoreBoard();
+			printDiceBoard(1);
 		}
-		//------------------------------------------
-		currentIndex = 0;
-		currentRound++;
-		clearDogs();
-		dogRandomMove();
-		printDogs();
-		mouseRandomMove();
-		printCats();
-		printMouses();
-		printChocolatesAndFishes();
-		printScoreBoard();
-		printDiceBoard(1);
-	} else{ 
-		currentIndex = (currentIndex + 1) % CAT_COUNT;
-		currentPlayer = indicateSort[currentIndex];
-		printMouses();
-		printChocolatesAndFishes();
-		printScoreBoard();
-		indicatePlayer();
+		else {
+			currentIndex = (currentIndex + 1) % CAT_COUNT;
+			currentPlayer = indicateSort[currentIndex];
+			printMouses();
+			printChocolatesAndFishes();
+			printScoreBoard();
+			indicatePlayer();
+		}
+		currentPlayerMoves = 1;
+		printAcceptMove(0);
+	}
+	else {
+		printAcceptMove(1);
+		currentPlayerMoves++;
 	}
 }
 
