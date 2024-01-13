@@ -11,12 +11,10 @@ FISH fishes[FISH_COUNT];
 short int map[BOARD_SIZE][BOARD_SIZE];
 
 void __initColors() {
-	BLUE = al_map_rgb_f(0, 0, 1);
-	GREEN = al_map_rgb_f(0, 1, 0);
-	RED = al_map_rgb_f(1, 0, 0);
+	BLUE = al_map_rgb(106, 76, 147);
+	GREEN = al_map_rgb(138, 201, 38);
+	RED = al_map_rgb(255, 89, 94);
 	MAGENTA = al_map_rgb_f(1, 0, 1);
-	DOG_COLOR = al_map_rgb(93,38,137);
-	MOUSE_COLOR = al_map_rgb(0, 128, 129);
 	COLOR1 = al_map_rgb(212, 0, 0);
 	COLOR2 = al_map_rgb(225, 44, 44);
 	COLOR3 = al_map_rgb(225, 165, 0);

@@ -420,28 +420,26 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
 /// @param x x of item to be checked for trap
 /// @param y y of item to be checked for trap
 /// @param index index of current cat
+/// return 0 if not trap enabled else return 1
 int trap(int x,int y,int index) {
   if(hasFlag(map[y][x],FLAG_TRAP)) {
-    printf("I GOT IN TRAP!\n");
     if(cats[index].mice_count == 0) {
-      if(cats[index].attackPoint > 2) {
+      if(cats[index].attackPoint > 2) 
         cats[index].attackPoint -= 2;
-      }else{
-        cats[index].defencePoint -=3;
-      }
+      else
+        cats[index].defencePoint -= 3;
       return 0;
     }
     //--------- Release Strongest mouse of current cat -------
     int max_mouse_point_index = -1;
     int temp_max_mouse_point = 0;
-    for(int mouse_index = 0;mouse_index<MOUSE_COUNT;mouse_index++) {
+    for(int mouse_index = 0;mouse_index<MOUSE_COUNT;mouse_index++) 
       if(mouses[mouse_index].points == INVALID_MOUSE_POINT) {
-        if(mouses[mouse_index].cat_index == index) {
+        if(mouses[mouse_index].cat_index == index) 
           if(mouses[mouse_index].mouse_type >= temp_max_mouse_point) {
             temp_max_mouse_point = mouses[mouse_index].mouse_type;
             max_mouse_point_index = mouse_index;
           }
-        }
         // Release Strongest mouse of current cat
         mouses[mouse_index].cat_index = 0;
         mouses[mouse_index].points = mouses[mouse_index].mouse_type;
@@ -453,7 +451,6 @@ int trap(int x,int y,int index) {
           mouses[mouse_index].y = new_y;
         }
       }
-    }
     //---------------------------------------------------
   }
   return 0;

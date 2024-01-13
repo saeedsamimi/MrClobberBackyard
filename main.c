@@ -56,7 +56,7 @@ int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
 char currentPlayerMoves = 1, diceRolled = 0;
 ALLEGRO_FONT* Font;
 ALLEGRO_DISPLAY* display;
-ALLEGRO_BITMAP* dogIcon[CAT_COUNT], *diceIcon[7], * mouseIcon, * chocoIcon, * fishIcon;
+ALLEGRO_BITMAP* dogIcon[CAT_COUNT], * diceIcon[7], * mouseIcon, * chocoIcon, * fishIcon, * freezeIcon, * catIcon;
 ALLEGRO_EVENT_QUEUE* EVQ;
 const short int k = SQUARE_SIZE + 2 * MARGIN;
 
@@ -83,6 +83,7 @@ int main() {
 // after hiding the console this GUI will be appear
 void GUI() {
 	setMap();
+	__testMap();
 	switch (runStartWin()) {
 	case -1:
 		printf("an error occured!");
@@ -97,9 +98,7 @@ void GUI() {
 	}
 	// deleting unneccary tests
 	char init_result = initializeDisplay();
-	if (init_result == INIT_DISPLAY_SUCCESS)
-		printf("The display created successfully!");
-	else
+	if (init_result != INIT_DISPLAY_SUCCESS)
 		exit(init_result);
 	printEmptyBoard();
 	printPlayers();
@@ -143,7 +142,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 				al_wait_for_event(ev_queue, ev);
 		}
 		printDiceHint(0);
-		clearMouses();
+		clearMouses(); //correct call
 		if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 			closeApp();
 		if (ev->type == ALLEGRO_EVENT_KEY_UP) {
@@ -250,6 +249,8 @@ char initializeDisplay() {
 	mouseIcon = al_load_bitmap("src/mouse.png");
 	chocoIcon = al_load_bitmap("src/chocolate.png");
 	fishIcon = al_load_bitmap("src/fish.png");
+	freezeIcon = al_load_bitmap("src/freeze.png");
+	catIcon = al_load_bitmap("src/cat.png");
 	if (!mouseIcon) {
 		showNotFoundErr(display, "Image", "src/mouse.png");
 		return INIT_DISPLAY_IMG_NOT_FOUND;
@@ -260,6 +261,14 @@ char initializeDisplay() {
 	}
 	if (!fishIcon) {
 		showNotFoundErr(display, "Image", "src/fish.png");
+		return INIT_DISPLAY_IMG_NOT_FOUND;
+	}
+	if (!freezeIcon) {
+		showNotFoundErr(display, "Image", "src/freeze.png");
+		return INIT_DISPLAY_IMG_NOT_FOUND;
+	}
+	if (!catIcon) {
+		showNotFoundErr(display, "Image", "src/cat.png");
 		return INIT_DISPLAY_IMG_NOT_FOUND;
 	}
 	al_set_window_position(display, 300, 40);
@@ -282,7 +291,7 @@ void freeCache() {
 // this function can print the score board with its information
 void printScoreBoard() {
 	const int x = k * BOARD_SIZE; //the basic left offset
-	int h = al_get_font_line_height(Font)*2;  //get the height of a line of text then multiply 2
+	int h = al_get_font_line_height(Font) * 2;  //get the height of a line of text then multiply 2
 	// draw the two important rectangles on the top of score board
 	al_draw_filled_rectangle(x, 0, x + SCORE_BOARD_WIDTH / 2, h, COLOR3);
 	al_draw_filled_rectangle(x + SCORE_BOARD_WIDTH / 2, 0, x + SCORE_BOARD_WIDTH, h, COLOR3);
@@ -311,20 +320,22 @@ void printScoreBoard() {
 			// use switch case for print the current column data
 			switch (i) {
 			case 0:
-				sprintf(t, "%s", indicateSort[j] == currentPlayer ? "<<>>" : "");
+				__drawScaledPhoto(cats[indicateSort[j]].freeze < 0 ? freezeIcon : catIcon,
+					x + 5, y + indicateSort[j] * h + 5, h * .9);
 				break;
 			case 1:
-				sprintf(t, "%d", cats[indicateSort[j]].defencePoint);
+				al_draw_textf(Font, WHITE, x + (1.5) * w, y + (indicateSort[j] + .5) * h - 15,
+					ALLEGRO_ALIGN_CENTER, "%d", cats[indicateSort[j]].defencePoint);
 				break;
 			case 2:
-				sprintf(t, "%d", cats[indicateSort[j]].attackPoint);
+				al_draw_textf(Font, WHITE, x + (2.5) * w, y + (indicateSort[j] + .5) * h - 15,
+					ALLEGRO_ALIGN_CENTER, "%d", cats[indicateSort[j]].attackPoint);
 				break;
 			case 3:
-				sprintf(t, "%d", cats[indicateSort[j]].mousePoint);
+				al_draw_textf(Font, WHITE, x + (3.5) * w, y + (indicateSort[j] + .5) * h - 15,
+					ALLEGRO_ALIGN_CENTER, "%d", cats[indicateSort[j]].mousePoint);
 				break;
 			}
-			al_draw_text(Font, WHITE, x + (i + .5) * w, y + (indicateSort[j] + .5) * h - 15,
-				ALLEGRO_ALIGN_CENTER, t);
 		}
 	}
 }
@@ -604,10 +615,11 @@ void clearSquare(int x, int y) {
 
 // get the next player and then indicate that
 void nextPlayer(bool forceAccept) {
-	if (cats[currentPlayer].defencePoint < 0 ||
+	if (cats[currentPlayer].freeze < 0 ||
 		currentPlayerMoves >= cats[currentPlayer].defencePoint ||
 		currentPlayerMoves >= 3 || (forceAccept && currentPlayerMoves > 1)) {
-		cats[currentPlayer].defencePoint -= (cats[currentPlayer].defencePoint >= currentPlayerMoves) ? currentPlayerMoves : 0;
+		if(cats[currentPlayer].freeze >= 0)
+			cats[currentPlayer].defencePoint -= (cats[currentPlayer].defencePoint >= currentPlayerMoves) ? currentPlayerMoves : 0;
 		if (currentIndex == CAT_COUNT - 1) {
 			// Add Defence Point to add players one unit
 			for (int cat_index = 0; cat_index < CAT_COUNT; cat_index++) {
