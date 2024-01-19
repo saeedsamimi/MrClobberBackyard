@@ -73,6 +73,13 @@ typedef struct {
 	unsigned short int points;
 } FISH;
 
+typedef struct {
+	int index;
+	int diceInt;
+	int fixed;
+	int cat_index;
+} DICE;
+
 enum MOVEMENT {
 	UP,
 	DOWN,

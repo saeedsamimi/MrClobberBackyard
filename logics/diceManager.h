@@ -3,13 +3,6 @@
 #include "../constants.h"
 #include <stdio.h>
 
-typedef struct {
-	int index;
-	int diceInt;
-	int fixed;
-	int cat_index;
-} DICE;
-
 DICE DICES[CAT_COUNT];
 
 // initDices with randomfully numbers

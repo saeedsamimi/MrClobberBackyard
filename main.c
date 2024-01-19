@@ -209,6 +209,9 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 // -- init -- allegro display settings
 char initializeDisplay() {
 	if (!al_init()) return INIT_DISPLAY_ALLEGRO_ERR;
+	// set anti-aliazing for app
+	al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
+	al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
 	display = al_create_display((SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE + SCORE_BOARD_WIDTH, (SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE);
 	if (!display) {
 		showError(NULL, "Create display failed", "Please try again!");
