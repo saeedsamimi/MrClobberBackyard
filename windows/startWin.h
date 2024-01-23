@@ -277,7 +277,7 @@ void hoverHandler(GBUTTON* btns, ALLEGRO_MOUSE_EVENT mouseE, int rectCount) {
 	}
 }
 
-void setNextPreviousBtns() {
+void setNextPreviousBtns(){
 	GBUTTON mybtn;
 	mybtn.x = 15, mybtn.y = START_HEIGHT - 55;
 	mybtn.height = 40, mybtn.width = (START_WIDTH - 30) / 2;

@@ -9,7 +9,7 @@ DOG dogs[DOG_COUNT];
 MOUSE mouses[MOUSE_COUNT];
 FISH fishes[FISH_COUNT];
 short int map[BOARD_SIZE][BOARD_SIZE];
-int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
+int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 15;
 char currentPlayerMoves = 1;
 
 void __initColors() {
@@ -28,14 +28,10 @@ void __initColors() {
 void __initFishes() {
 	// ---- init -------- fishes
 	// Clear Current Board from Fishes to reinit the board 
-	for(int i=0;i<BOARD_SIZE;i++) {
-		for(int j=0;j<BOARD_SIZE;j++) {
-			if(hasFlag(map[i][j],FLAG_FISH)) {
+	for(int i=0;i<BOARD_SIZE;i++)
+		for(int j=0;j<BOARD_SIZE;j++)
+			if(hasFlag(map[i][j],FLAG_FISH))
 				removeFlag(&map[i][j],FLAG_FISH);
-			}
-		}
-	}
-
 	// quarter top left
 	const int slice = BOARD_SIZE / 2;
 	int fish_index = 0;
@@ -286,7 +282,6 @@ void clearFishes() {
 }
 
 void __generateRandomTraps() {
-
 	int k,i,j;
 	// quarter top left
 	const int slice = BOARD_SIZE / 2;
@@ -336,4 +331,3 @@ void setMap() {
 	__generateRandomWalls();
 	__generateRandomTraps();
 }
-

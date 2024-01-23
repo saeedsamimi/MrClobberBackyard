@@ -18,4 +18,3 @@ void showNotFoundErr(ALLEGRO_DISPLAY* display, const char* type, const char* fil
   sprintf(temp, "%s %s cannot open. may be deleted or corrupted!", type, fileName);
   showError(display, "The file cannot opened!", temp);
 }
-

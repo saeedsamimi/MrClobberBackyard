@@ -1,19 +1,24 @@
 #pragma once
 #include "allegro5/allegro.h"
 #include "allegro5/allegro_native_dialog.h"
+#include "allegro5/allegro_primitives.h"
+#include "allegro5/allegro_font.h"
 #include "../map.h"
 #include "../test.h"
 #include "startWin.h"
 #include "../save/fileManager.h"
+#include "../constants.h"
 
-#define FINISH_WIDTH 1000
-#define FINISH_HEIGHT 700
+extern void __drawScaledPhoto(ALLEGRO_BITMAP*, float, float, float);
+
+#define FINISH_WIDTH 665
+#define FINISH_HEIGHT 500
 #define FINISH_MSPACER 10
 #define FINISH_TOP 200
 
 ALLEGRO_FONT* HeadFont;
+ALLEGRO_BITMAP* crown;
 char running = 1;
-ALLEGRO_TEXTLOG* textLog;
 
 char cmp(CAT*,CAT*);
 
@@ -38,42 +43,82 @@ void qSort(CAT* A, int start, int end) {
 }
 
 void FinishWinPaint(ALLEGRO_FONT* FONT) {
-	const float tableIH = (FINISH_HEIGHT - FINISH_MSPACER - FINISH_TOP) / 5;
-	const float tableIW = (FINISH_WIDTH - 2 * FINISH_MSPACER) / 4;
-	al_draw_filled_rectangle(FINISH_MSPACER, FINISH_TOP, FINISH_WIDTH - FINISH_MSPACER, FINISH_HEIGHT - FINISH_MSPACER, COLOR3);
-	float x, y = FINISH_TOP;
-	const float textOffset = (tableIH - al_get_font_line_height(FONT)) / 2;
-	for (int i = 0; i < 4; i++) {
-		x = i * tableIW + FINISH_MSPACER;
-		al_draw_rectangle(x, y, x + tableIW, y + tableIH, BLACK, 2.);
-		al_draw_text(FONT, BLACK, x + tableIW / 2, y + textOffset, ALLEGRO_ALIGN_CENTER, TITLES[i]);
+	const float tableX = 15;
+	const float tableY = 130;
+	const float tableIH = 55;
+	const float tableIW[5] = { 135,100,100,100,100 };
+	const float verticalGap = 25;
+	const float horizontalGap = 15;
+	const ALLEGRO_COLOR topColor = al_map_rgb(164, 164, 164);
+	const ALLEGRO_COLOR tableColor = al_map_rgb(217, 217, 217);
+	// print top of the table
+	float x = tableX;
+	float fontHeight = (float)al_get_font_line_height(FONT);
+	for (int i = 0; i < 5; i++) {
+		al_draw_filled_rounded_rectangle(x, tableY, x + tableIW[i],tableY+ tableIH, 20, 20, topColor);
+		x += tableIW[i] + verticalGap;
 	}
+	x = tableX + tableIW[0] + verticalGap;
+	for (int i = 1; i < 5; i++) {
+		al_draw_text(FONT, BLACK, x + tableIW[i] / 2, tableY + (tableIH - fontHeight) / 2, ALLEGRO_ALIGN_CENTER, TITLES[i-1]);
+		x += tableIW[i] + verticalGap;
+	}
+	float y = tableY + tableIH + horizontalGap;
+	// endprint the top of the table
+	// print players table
 	for (int i = 0; i < CAT_COUNT; i++) {
-		y += tableIH;
-		x = FINISH_MSPACER;
-		al_draw_filled_rectangle(x, y, x + tableIW, y + tableIH, cats[i].color);
-		for (int j = 1; j < 4; j++) {
-			x = j * tableIW + FINISH_MSPACER;
-			al_draw_rectangle(x, y, x + tableIW, y + tableIH, BLACK, 2.);
-		}
-		x = FINISH_MSPACER + tableIW / 2;
-		// j = 0
-		al_draw_textf(FONT, BLACK, x, y + textOffset, ALLEGRO_ALIGN_CENTER, "#%d", i);
-		// j = 1
-		x += tableIW;
-		al_draw_textf(FONT, BLACK, x, y + textOffset, ALLEGRO_ALIGN_CENTER, "%d", cats[i].defencePoint);
-		// j = 2
-		x += tableIW;
-		al_draw_textf(FONT, BLACK, x, y + textOffset, ALLEGRO_ALIGN_CENTER, "%d", cats[i].attackPoint);
-		// j = 3
-		x += tableIW;
-		al_draw_textf(FONT, BLACK, x, y + textOffset, ALLEGRO_ALIGN_CENTER, "%d", cats[i].mousePoint);
+		x = tableX;
+		// print player identities
+		al_draw_filled_rounded_rectangle(x, y, x + tableIW[0], y + tableIH, 20, 20, tableColor);
+		al_draw_textf(FONT,
+			cats[i].color,
+			x + tableIW[0] / 2,
+			y + (tableIH - fontHeight) / 2,
+			ALLEGRO_ALIGN_CENTER,
+			"#%d",i+1);
+		// endprint players identities
+		// print players name
+		x += tableIW[0] + verticalGap;
+		al_draw_filled_rounded_rectangle(x, y, x + tableIW[1], y + tableIH, 20, 20, tableColor);
+		al_draw_textf(FONT,
+			BLACK,
+			x + tableIW[1] / 2,
+			y + (tableIH - fontHeight) / 2,
+			ALLEGRO_ALIGN_CENTER,
+			"%d", i+1);
+		// endprint players name
+		// print players points 1- defencePoint
+		x += tableIW[1] + verticalGap;
+		al_draw_filled_rounded_rectangle(x, y, x + tableIW[2], y + tableIH, 20, 20, tableColor);
+		al_draw_textf(FONT,
+			BLACK,
+			x + tableIW[2] / 2,
+			y + (tableIH - fontHeight) / 2,
+			ALLEGRO_ALIGN_CENTER,
+			"%d", cats[i].defencePoint);
+		// print players point 2- attackPoint
+		x += tableIW[2] + verticalGap;
+		al_draw_filled_rounded_rectangle(x, y, x + tableIW[3], y + tableIH, 20, 20, tableColor);
+		al_draw_textf(FONT,
+			BLACK,
+			x + tableIW[3] / 2,
+			y + (tableIH - fontHeight) / 2,
+			ALLEGRO_ALIGN_CENTER,
+			"%d", cats[i].attackPoint);
+		// print players point 3- mousePoint
+		x += tableIW[3] + verticalGap;
+		al_draw_filled_rounded_rectangle(x, y, x + tableIW[4], y + tableIH, 20, 20, tableColor);
+		al_draw_textf(FONT,
+			BLACK,
+			x + tableIW[4] / 2,
+			y + (tableIH - fontHeight) / 2,
+			ALLEGRO_ALIGN_CENTER,
+			"%d", cats[i].mousePoint);
+		y += tableIH + horizontalGap;
 	}
-	al_destroy_font(FONT);
-	al_draw_text(HeadFont, BLACK, FINISH_MSPACER, (FINISH_TOP - al_get_font_line_height(FONT))/2, 0, "The game's result: ");
-	int W = al_get_bitmap_width(img);
-	const float dw = FINISH_TOP - 2 * FINISH_MSPACER;
-	al_draw_scaled_bitmap(img, 0, 0, W, W, FINISH_WIDTH - FINISH_MSPACER - dw, FINISH_MSPACER, dw, dw, 0);
+	__drawScaledPhoto(crown, 15, 15, 100);
+	__drawScaledPhoto(img, 550, 15, 100);
+	al_draw_text(HeadFont, BLACK, 150, 47, 0, "Game Result: ");
 	al_flip_display();
 }
 
@@ -114,6 +159,7 @@ void eventHandler(ALLEGRO_DISPLAY* buff,CAT Players[CAT_COUNT]) {
 					al_destroy_display(buff);
 					al_destroy_font(HeadFont);
 					al_destroy_bitmap(img);
+					al_destroy_bitmap(crown);
 					running = 0;
 				}
 			}
@@ -121,19 +167,20 @@ void eventHandler(ALLEGRO_DISPLAY* buff,CAT Players[CAT_COUNT]) {
 				al_destroy_display(buff);
 				al_destroy_font(HeadFont);
 				al_destroy_bitmap(img);
+				al_destroy_bitmap(crown);
 				running = 0;
 			}
 			break;
 		}
 	}
-	exit(0);
 }
 
 void runFinishWin(ALLEGRO_FONT *FONT,ALLEGRO_DISPLAY *buff,CAT Players[CAT_COUNT]) {
 	qSort(Players, 0, CAT_COUNT - 1);
 	buff = al_create_display(FINISH_WIDTH, FINISH_HEIGHT);
+	crown = al_load_bitmap("src/crown.png");
 	al_set_display_icon(buff, img);
-	HeadFont = al_load_ttf_font("src/NotoSerif-Medium.ttf", 60, 0);
+	HeadFont = al_load_ttf_font("src/NotoSerif-Medium.ttf", 35, 0);
 	if (!HeadFont) {
 		showNotFoundErr(buff, "font", "src/NotoSerif-Medium.ttf");
 		showError(buff, "the font cannot load", "but the content of the game was saved in the local storage!");
@@ -142,6 +189,5 @@ void runFinishWin(ALLEGRO_FONT *FONT,ALLEGRO_DISPLAY *buff,CAT Players[CAT_COUNT
 	al_clear_to_color(WHITE);
 	FinishWinPaint(FONT);
 	eventHandler(buff,Players);
-	al_rest(10);
 	exit(0);
 }

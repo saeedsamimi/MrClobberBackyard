@@ -26,33 +26,4 @@ void __testLoadState(ALLEGRO_TEXTLOG *log,gameState* _state) {
 			al_append_native_text_log(log, " %-3d", _state->_map[row][col]);
 		al_append_native_text_log(log, "\n");
 	}
-	/*// ---- end test ------------------
-	// ---- test ----------- cats -----
-	for (col = 0; col < CAT_COUNT; col++)
-		_state->_cats[col] = cats[col];
-	// ---- end test ------------------
-	// ---- test ----------- fishes ---
-	for (col = 0; col < FISH_COUNT; col++)
-		_state->_fishes[col] = fishes[col];
-	// ---- end test ------------------
-	// ---- test ----------- mouses ---
-	for (col = 0; col < MOUSE_COUNT; col++)
-		_state->_mouses[col] = mouses[col];
-	// ---- end test ------------------
-	// ---- test ----------- dogs -----
-	for (col = 0; col < DOG_COUNT; col++)
-		_state->_dogs[col] = dogs[col];
-	// ---- end test ------------------
-	// ---- test ----------- dices ----
-	for (col = 0; col < CAT_COUNT; col++)
-		_state->_dices[col] = DICES[col];
-	// ---- end test ------------------
-	// ---- test ------ specialists ---
-	_state->_currPlayer = currentPlayer;
-	_state->_currIndex = currentIndex;
-	_state->_currPlayerMoves = currentPlayerMoves;
-	_state->_currRound = currentRound;
-	for (col = 0; col < CAT_COUNT; col++)
-		_state->_indicSort[col] = indicateSort[col];
-	// ---- end test ------------------*/
 }
