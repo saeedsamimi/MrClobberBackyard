@@ -9,7 +9,7 @@ DOG dogs[DOG_COUNT];
 MOUSE mouses[MOUSE_COUNT];
 FISH fishes[FISH_COUNT];
 short int map[BOARD_SIZE][BOARD_SIZE];
-int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 15;
+int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
 char currentPlayerMoves = 1;
 
 void __initColors() {
