@@ -53,7 +53,7 @@ void FinishWinPaint(ALLEGRO_FONT* FONT) {
 	const ALLEGRO_COLOR tableColor = al_map_rgb(217, 217, 217);
 	// print top of the table
 	float x = tableX;
-	float fontHeight = (float)al_get_font_line_height(FONT);
+	int fontHeight = al_get_font_line_height(FONT);
 	for (int i = 0; i < 5; i++) {
 		al_draw_filled_rounded_rectangle(x, tableY, x + tableIW[i],tableY+ tableIH, 20, 20, topColor);
 		x += tableIW[i] + verticalGap;
@@ -158,7 +158,6 @@ void eventHandler(ALLEGRO_DISPLAY* buff,CAT Players[CAT_COUNT]) {
 				if (saveResult) {
 					al_destroy_display(buff);
 					al_destroy_font(HeadFont);
-					al_destroy_bitmap(img);
 					al_destroy_bitmap(crown);
 					running = 0;
 				}
@@ -166,7 +165,6 @@ void eventHandler(ALLEGRO_DISPLAY* buff,CAT Players[CAT_COUNT]) {
 			else if(dlgResult == 2) {
 				al_destroy_display(buff);
 				al_destroy_font(HeadFont);
-				al_destroy_bitmap(img);
 				al_destroy_bitmap(crown);
 				running = 0;
 			}
@@ -179,7 +177,9 @@ void runFinishWin(ALLEGRO_FONT *FONT,ALLEGRO_DISPLAY *buff,CAT Players[CAT_COUNT
 	qSort(Players, 0, CAT_COUNT - 1);
 	buff = al_create_display(FINISH_WIDTH, FINISH_HEIGHT);
 	crown = al_load_bitmap("src/crown.png");
+	img = al_load_bitmap("src/pic.png");
 	al_set_display_icon(buff, img);
+	FONT = al_load_ttf_font("src/NotoSerif-Medium.ttf", 20, 0);
 	HeadFont = al_load_ttf_font("src/NotoSerif-Medium.ttf", 35, 0);
 	if (!HeadFont) {
 		showNotFoundErr(buff, "font", "src/NotoSerif-Medium.ttf");

@@ -53,7 +53,7 @@ void finishBoard();
 void moveCurrentPlayerOnBoard(int, int);
 void GUI();
 void closeApp();
-//int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
+
 char diceRolled = 0;
 ALLEGRO_FONT* Font;
 ALLEGRO_DISPLAY* display;
@@ -338,6 +338,8 @@ void printScoreBoard() {
 					x + 5, y + indicateSort[j] * h + 5, h * .9);
 				break;
 			case 1:
+				// fixing bug
+				if (cats[indicateSort[j]].defencePoint > 65000) cats[indicateSort[j]].defencePoint = 0;
 				al_draw_textf(Font, WHITE, x + (1.5) * w, y + (indicateSort[j] + .5) * h - 15,
 					ALLEGRO_ALIGN_CENTER, "%d", cats[indicateSort[j]].defencePoint);
 				break;
