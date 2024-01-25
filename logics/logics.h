@@ -13,7 +13,7 @@ short int priority[CAT_COUNT] = {-1};
 
 unsigned short int REMAINING_FISHES = FISH_COUNT;
 unsigned short int REMAINING_MOUSES = MOUSE_COUNT;
-int canMove(int,int,enum MOVEMENT);
+int canMove(int,int,enum MOVEMENT move);
 void dogRandomMove();
 void eat(int, int, int);
 void mouseRandomMove();
@@ -110,6 +110,7 @@ void dogRandomMove() {
   enum MOVEMENT movement;
   int new_x;
   int new_y;
+  char sw = 0;
   // UP = 1; DOWN = 2;RIGHT = 3;LEFT = 4
   for (int dog_index = 0; dog_index < DOG_COUNT; dog_index++) {
     int x = dogs[dog_index].x;
@@ -148,14 +149,18 @@ void dogRandomMove() {
         }
         if (new_x < 0 || new_x >= BOARD_SIZE) new_x = x;
         if (new_y < 0 || new_y >= BOARD_SIZE) new_y = y;
-        if (canMove(x, y, movement)) break;
+        if (canMove(x, y, movement)) {
+          sw = 1;
+          break;
+        }
       }
-      dogs[dog_index].x = new_x;
-      dogs[dog_index].y = new_y;
-      addFlag(&map[new_y][new_x], FLAG_DOG);
-      removeFlag(&map[y][x], FLAG_DOG);
+      if (sw) {
+        dogs[dog_index].x = new_x;
+        dogs[dog_index].y = new_y;
+        addFlag(&map[new_y][new_x], FLAG_DOG);
+        removeFlag(&map[y][x], FLAG_DOG);
+      }
     }
-    
   }
 }
 
@@ -207,15 +212,13 @@ void eat(int x,int y,int cat_index) {
   //-----------
 }
 
-void releaseMice(int count) {
-  for(int i=0;i<MOUSE_COUNT;i++) {
-    if(count <= 0) break;
-    if(mouses[i].points == INVALID_MOUSE_POINT) {
+void releaseMice(int cat_number,int count) {
+  for(int i=0;i<MOUSE_COUNT && count > 0;i++)
+    if(mouses[i].cat_index == cat_number && mouses[i].points == INVALID_MOUSE_POINT) {
       // this is simpler
       mouses[i].points = mouses[i].mouse_type;
       // Select location for released mouses 
-      MOUSE current_mouse;
-      current_mouse = mouses[i];
+      MOUSE current_mouse = mouses[i];
       if(hasFlag(map[current_mouse.y][current_mouse.x],FLAG_CAT) || hasFlag(map[current_mouse.y][current_mouse.x],FLAG_MOUSE)) {
         int new_x,new_y;
         while(1) {
@@ -226,14 +229,20 @@ void releaseMice(int count) {
         mouses[i].x = new_x;
         mouses[i].y = new_y;
         addFlag(&map[new_y][new_x],FLAG_MOUSE);
+        mouses[i].cat_index = -1;
+        count--;
+        REMAINING_MOUSES++;
+      }
+      else {
+        mouses[i].points = mouses[i].mouse_type;
+        addFlag(&map[mouses[i].y][mouses[i].x], FLAG_MOUSE);
+        mouses[i].cat_index = -1;
+        count--;
+        REMAINING_MOUSES++;
       }
       //------------------------------------
-      count--;
-      REMAINING_MOUSES++;
     }
-  }
 }
-
 
 void mouseRandomMove() {
   int direction_number;
@@ -317,15 +326,15 @@ void mouseRandomMove() {
 /// @param y y Coordinate of Cat or Dog
 /// @param type type of current item object(0 = cat & 1 = dog)
 /// @param index index of current object in cats or dogs array
-int fight(int x,int y,unsigned  int type,unsigned int index) {
-  if(type == 0) { // Current Object is Cat
+int fight(int x, int y, unsigned  int type, unsigned int index) {
+  if (type == 0) { // Current Object is Cat
     // Cat vs Dog
-    if(hasFlag(map[y][x],FLAG_DOG)) {
+    if (hasFlag(map[y][x], FLAG_DOG)) {
       DOG fighting_dog;
       int fighting_dog_index = 0;
       // Find Fighting Dog
-      for(int dog_index = 0;dog_index<DOG_COUNT;dog_index++) {
-        if(dogs[dog_index].x == x && dogs[dog_index].y == y) {
+      for (int dog_index = 0; dog_index < DOG_COUNT; dog_index++) {
+        if (dogs[dog_index].x == x && dogs[dog_index].y == y) {
           fighting_dog = dogs[dog_index];
           fighting_dog_index = dog_index;
           break;
@@ -339,15 +348,17 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
 
       int catPoint = catDefencePoint * catAttackPoint;
       int dogPoint = dogDefencePoint * dogAttackPoint;
-      
-      if(catPoint >= dogPoint) {
+
+      if (catPoint >= dogPoint) {
         // Cat is winner
         // Reduce Cat power
         cats[index].defencePoint -= (dogDefencePoint / catDefencePoint) * dogAttackPoint;
         // Removing Dog
         fighting_dog.x = REMOVED_DOG;
         fighting_dog.y = REMOVED_DOG;
-      }else if(dogPoint > catPoint) {
+        removeFlag(&map[y][x], FLAG_DOG); //bug some fixed!
+      }
+      else if (dogPoint > catPoint) {
         //Dog is winner
         //Cat should be freeze
         cats[index].freeze = -3;
@@ -356,37 +367,40 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
         cats[index].defencePoint = 5;
         fighting_dog.defencePoint -= (catDefencePoint / dogDefencePoint) * catAttackPoint;
         // Releasing mice
-        releaseMice(cats[index].mice_count);
+        releaseMice(index, cats[index].mice_count);
         cats[index].mice_count = 0;
         cats[index].mousePoint = 0;
-        
       }
-     dogs[fighting_dog_index] = fighting_dog;
+      dogs[fighting_dog_index] = fighting_dog;
     }
     // Cat vs Cat
-    if(hasFlag(map[y][x],FLAG_CAT)) {
+    if (hasFlag(map[y][x], FLAG_CAT)) {
       CAT fighting_cat;
       int fighting_cat_index = 0;
       // Find Fighting cat
-      for(int cat_index = 0;cat_index<CAT_COUNT;cat_index++) {
-        if(cats[cat_index].x == x && cats[cat_index].y == y && cats[cat_index].freeze>=0) {
+      for (int cat_index = 0; cat_index < CAT_COUNT; cat_index++) {
+        if (cats[cat_index].x == x && cats[cat_index].y == y && cats[cat_index].freeze >= 0) {
           fighting_cat = cats[cat_index];
           fighting_cat_index = cat_index;
           break;
         }
       }
-      if(fighting_cat.freeze >= 0) {
+      if (fighting_cat.freeze >= 0) {
         // Calculate points
         int curretCatPoint = cats[index].attackPoint * cats[index].defencePoint;
         int fightingCatPoint = fighting_cat.attackPoint * fighting_cat.defencePoint;
-        printf("CURRENT CAT POINT: %d\nFIGHTING CAT POINT : %d\n",curretCatPoint,fightingCatPoint);
-        if(curretCatPoint >= fightingCatPoint) {
+        printf("CURRENT CAT POINT: %d\nFIGHTING CAT POINT : %d\n", curretCatPoint, fightingCatPoint);
+        if (curretCatPoint >= fightingCatPoint) {
           printf("CURRENT CAT WINS");
           // Current Player is winner
           // Freeze fighting Cat
           fighting_cat.freeze = -3;
           // Getting fighting cat mice
           cats[index].mice_count += fighting_cat.mice_count;
+          // transporting mouses
+          for (int mice_index = 0; mice_index < MOUSE_COUNT; mice_index++)
+            if (mouses[mice_index].cat_index == fighting_cat_index)
+              mouses[mice_index].cat_index = index;
           fighting_cat.mice_count = 0;
           cats[index].mousePoint += fighting_cat.mousePoint;
           fighting_cat.mousePoint = 0;
@@ -395,7 +409,8 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
           if (cats[index].defencePoint > 65000) cats[index].defencePoint = 0;
           fighting_cat.attackPoint = 2;
           fighting_cat.defencePoint = 5;
-        }else if(fightingCatPoint > curretCatPoint) {
+        }
+        else if (fightingCatPoint > curretCatPoint) {
           // Fighting cat is winner
           // Freeze current Cat
           cats[index].freeze = -3;
@@ -412,7 +427,7 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
         }
         cats[fighting_cat_index] = fighting_cat;
       }
-    }  
+    }
   }
 }
 
@@ -421,10 +436,10 @@ int fight(int x,int y,unsigned  int type,unsigned int index) {
 /// @param y y of item to be checked for trap
 /// @param index index of current cat
 /// return 0 if not trap enabled else return 1
-int trap(int x,int y,int index) {
-  if(hasFlag(map[y][x],FLAG_TRAP)) {
-    if(cats[index].mice_count == 0) {
-      if(cats[index].attackPoint > 2) 
+int trap(int x, int y, int index) {
+  if (hasFlag(map[y][x], FLAG_TRAP)) {
+    if (cats[index].mice_count == 0) {
+      if (cats[index].attackPoint > 2)
         cats[index].attackPoint -= 2;
       else
         cats[index].defencePoint -= 3;
@@ -433,10 +448,10 @@ int trap(int x,int y,int index) {
     //--------- Release Strongest mouse of current cat -------
     int max_mouse_point_index = -1;
     int temp_max_mouse_point = 0;
-    for(int mouse_index = 0;mouse_index<MOUSE_COUNT;mouse_index++) 
-      if(mouses[mouse_index].points == INVALID_MOUSE_POINT) {
-        if(mouses[mouse_index].cat_index == index) 
-          if(mouses[mouse_index].mouse_type >= temp_max_mouse_point) {
+    for (int mouse_index = 0; mouse_index < MOUSE_COUNT; mouse_index++)
+      if (mouses[mouse_index].points == INVALID_MOUSE_POINT) {
+        if (mouses[mouse_index].cat_index == index)
+          if (mouses[mouse_index].mouse_type >= temp_max_mouse_point) {
             temp_max_mouse_point = mouses[mouse_index].mouse_type;
             max_mouse_point_index = mouse_index;
           }
@@ -444,7 +459,7 @@ int trap(int x,int y,int index) {
         mouses[mouse_index].cat_index = 0;
         mouses[mouse_index].points = mouses[mouse_index].mouse_type;
         //Check status for mouse location
-        while(hasFlag(map[mouses[mouse_index].y][mouses[mouse_index].x],FLAG_MOUSE)) {
+        while (hasFlag(map[mouses[mouse_index].y][mouses[mouse_index].x], FLAG_MOUSE)) {
           int new_x = random_function(15);
           int new_y = random_function(15);
           mouses[mouse_index].x = new_x;

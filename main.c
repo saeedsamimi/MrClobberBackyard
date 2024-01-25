@@ -285,7 +285,7 @@ char initializeDisplay() {
 		showNotFoundErr(display, "Image", "src/cat.png");
 		return INIT_DISPLAY_IMG_NOT_FOUND;
 	}
-	al_set_window_position(display, 300, 40);
+	al_set_window_position(display, 50, 50);
 	al_set_display_icon(display, img);
 	return INIT_DISPLAY_SUCCESS;
 }

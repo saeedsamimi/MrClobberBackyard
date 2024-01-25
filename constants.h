@@ -49,7 +49,7 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
 typedef struct {
 	unsigned short int x, y;
 	unsigned short int points;
-	unsigned short int cat_index; // Index of cat that ate this mouse
+	short int cat_index; // Index of cat that ate this mouse
 	unsigned short int mouse_type; // Actually this is same with points and stores type of mouse
 } MOUSE;
 typedef struct {

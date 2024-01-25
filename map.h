@@ -142,6 +142,7 @@ void __generateRandomMap() {
 		t.attackPoint = 2;
 		t.defencePoint = 5;
 		t.mousePoint = 0;
+		t.mice_count = 0;
 		t.state = 'a';
 		t.x = BOARD_SIZE / 2;
 		t.y = BOARD_SIZE / 2;
@@ -186,6 +187,7 @@ void __generateRandomMap() {
 	for(int i=0;i<MOUSE_COUNT;i++) {
 		mouses[i].points = rand() % 3 + 1;
 		mouses[i].mouse_type = mouses[i].points;
+		mouses[i].cat_index = -1;
 	}
 	// ---- init --- chocos
 	// quarter top left
