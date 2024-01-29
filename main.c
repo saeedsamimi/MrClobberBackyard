@@ -53,7 +53,6 @@ void finishBoard();
 void moveCurrentPlayerOnBoard(int, int);
 void GUI();
 void closeApp();
-//int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
 char diceRolled = 0;
 ALLEGRO_FONT* Font;
 ALLEGRO_DISPLAY* display;
@@ -129,12 +128,11 @@ void GUI() {
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 	//------- Check For Game Roundes -------
-	al_flip_display();
 	while (1) {
+		al_flip_display();
 		if (currentRound > ROUNDS_NUMBER) finishBoard();
 		// if the dice not rolled please roll it!
 		if (!diceRolled) {
-			clearCats();
 			printCats();
 			printDiceHint(1);
 			printAcceptMove(0);
@@ -154,12 +152,10 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 				al_wait_for_event(ev_queue, ev);
 		}
 		printDiceHint(0);
-		clearMouses(); //correct call
-		al_flip_display();
+		indicatePlayer();
 		if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 			closeApp();
 		if (ev->type == ALLEGRO_EVENT_KEY_UP) {
-			al_flip_display();
 			switch (ev->keyboard.keycode) {
 			case ALLEGRO_KEY_A:
 			case ALLEGRO_KEY_LEFT:
@@ -189,26 +185,12 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 					nextPlayer(0);
 				}
 				break;
-			case ALLEGRO_KEY_M:
+			case ALLEGRO_KEY_M: // for cancel movement
 				if (currentPlayerMoves > 1)
 					nextPlayer(1);
 				break;
 			}
 		}
-		al_flip_display();
-		// ---- REMOVE THIS SECTION ----
-		clearDogs();
-		printDogs();
-		clearCats();
-		printCats();
-		clearMouses();
-		printMouses();
-		clearFishes();
-		indicatePlayer();
-		printChocolatesAndFishes();
-		printScoreBoard();
-		//------------------------------
-		al_flip_display();
 	}
 }
 
@@ -452,13 +434,6 @@ void __drawScaledPhoto(ALLEGRO_BITMAP* img, float x, float y, float w) {
 // print initial players only once
 // this function prints all types of models
 void printPlayers() {
-	//// ------ print ---- cat
-	//float x = k * (cats[0].x + .25);
-	//float y = k * (cats[0].y + .25);
-	//for (int i = 0; i < CAT_COUNT; i++) 
-	//	al_draw_filled_circle(x + ((i % 2) ? k / 2 : 0),
-	//		y + ((i > 1) ? k / 2 : 0), 0.2 * SQUARE_SIZE, cats[i].color);
-	//// ------ endPrint-- cat
 	printCats();
 	printDogs();
 	printMouses();
@@ -519,7 +494,6 @@ void moveCurrentPlayerOnBoard(int newX, int newY){
 	if(cats[currentPlayer].freeze >=0) {
 		clearCats();
 		clearMouses();
-		al_flip_display();
 		eat(newX, newY, currentPlayer);
 		fight(newX,newY,0,currentPlayer);
 		trap(newX,newY,currentPlayer);
@@ -632,6 +606,7 @@ void clearSquare(int x, int y) {
 
 // get the next player and then indicate that
 void nextPlayer(bool forceAccept) {
+	clearMouses();
 	if (cats[currentPlayer].freeze < 0 ||
 		currentPlayerMoves >= cats[currentPlayer].defencePoint ||
 		currentPlayerMoves >= 3 || (forceAccept && currentPlayerMoves > 1)) {
@@ -644,26 +619,17 @@ void nextPlayer(bool forceAccept) {
 					cats[cat_index].defencePoint++;
 				cats[cat_index].freeze++;
 			}
-			//------------------------------------------
 			currentIndex = 0;
 			currentRound++;
 			clearDogs();
 			dogRandomMove();
 			printDogs();
 			mouseRandomMove();
-			printCats();
-			printMouses();
-			printChocolatesAndFishes();
-			printScoreBoard();
 			printDiceBoard(1);
 		}
 		else {
 			currentIndex = (currentIndex + 1) % CAT_COUNT;
 			currentPlayer = indicateSort[currentIndex];
-			printMouses();
-			printChocolatesAndFishes();
-			printScoreBoard();
-			indicatePlayer();
 		}
 		currentPlayerMoves = 1;
 		printAcceptMove(0);
@@ -672,6 +638,14 @@ void nextPlayer(bool forceAccept) {
 		printAcceptMove(1);
 		currentPlayerMoves++;
 	}
+	// ---- REMOVE THIS SECTION ----
+	printDogs();
+	printMouses();
+	printCats();
+	indicatePlayer();
+	printChocolatesAndFishes();
+	printScoreBoard();
+	//------------------------------
 }
 
 // for finishing the game
