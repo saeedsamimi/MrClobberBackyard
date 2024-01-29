@@ -7,6 +7,7 @@
 #include "../windows/error.h"
 #include "../constants.h"
 #include "../map.h"
+#include "../encryption/encryption.h"
 
 typedef struct {
 	int _currIndex, _currPlayer, _currRound, _currPlayerMoves, _indicSort[CAT_COUNT], _map[BOARD_SIZE][BOARD_SIZE];
@@ -142,32 +143,56 @@ void generateGameSate(gameState* _state) {
 /// </summary>
 /// <param name="fileName">the file name which you want to save state on it!</param>
 /// <param name="_state">the game state</param>
+/// <param name="key">Encryption key</param>
 /// <returns>
 /// 0 - if the file maked successfully
 /// 1 - if the file cannot opened
 /// 2 - if the file cannot closed(saved)
 /// 3 - if the application cannot write on the file.
 /// </returns>
-int saveGameState(const char* fileName,gameState* _state, ALLEGRO_DISPLAY* displayBuff) {
-	FILE* out = fopen(fileName, "wb");
-	if (!out) {
-		showError(displayBuff, "File cannot be created", "this file in this location cannot be created!");
-		return 1;
-	}
-	if (fwrite(_state, sizeof(gameState), 1, out) == EOF) {
-		showError(displayBuff, 
-			"File cannot be written", 
-			"this file cannot be write by this user, maybe should have adminstrator privillage / permission!");
-		return 3;
-	}
-	if (fclose(out)) {
-		showError(displayBuff, 
-			"File cannot be saved", 
-			"the file cannot be saved. maybe the path of file was changed or the file deleted");
-		return 2;
-	}
-	return 0;
+int saveEncryptedGameState(const char* fileName, gameState* _state, ALLEGRO_DISPLAY* displayBuff, const char* key) {
+    FILE* out = fopen(fileName, "wb");
+    if (!out) {
+        showError(displayBuff, "File cannot be created", "This file in this location cannot be created!");
+        return 1;
+    }
+
+    // Generate a random IV (Initialization Vector)
+    unsigned char iv[AES_BLOCK_SIZE];
+    if (RAND_bytes(iv, AES_BLOCK_SIZE) != 1) {
+        showError(displayBuff, "Error generating random IV", "Failed to generate a random Initialization Vector.");
+        fclose(out);
+        return 4;
+    }
+
+    // Encrypt the gameState structure
+    unsigned char* encryptedData;
+    size_t encryptedLength;
+    encryptData((unsigned char*)_state, sizeof(gameState), key, iv, &encryptedData, &encryptedLength);
+
+    // Write the IV and encrypted data to the file
+    size_t ivWriteResult = fwrite(iv, 1, AES_BLOCK_SIZE, out);
+    size_t dataWriteResult = fwrite(encryptedData, 1, encryptedLength, out);
+
+    // Free dynamically allocated memory
+    free(encryptedData);
+
+    // Check for write errors
+    if (ivWriteResult != AES_BLOCK_SIZE || dataWriteResult != encryptedLength) {
+        showError(displayBuff, "File cannot be written", "Failed to write to the file.");
+        fclose(out);
+        return 3;
+    }
+
+    // Close the file
+    if (fclose(out) != 0) {
+        showError(displayBuff, "File cannot be saved", "Failed to close the file.");
+        return 2;
+    }
+
+    return 0;
 }
+
 
 /// <summary>
 /// tries to load the games
@@ -178,22 +203,57 @@ int saveGameState(const char* fileName,gameState* _state, ALLEGRO_DISPLAY* displ
 /// 1 - if the game state loaded successfully
 /// 0 - if the game state cannot be loaded or corrupted
 /// </returns>
-int loadGameState(const char* fileName,ALLEGRO_DISPLAY* displayBuff,gameState* stateBuffer) {
-	if (fileExists(fileName)) {
-		FILE* in = fopen(fileName, "rb");
-		if (!in || feof(in)) {
-			showError(displayBuff,
-				"the data cannot be loaded! ", 
-				"the file cannot be opened. maybe curropted or opened or don't have enough permissions!");
-			return 0;
-		}
-		fread(stateBuffer, sizeof(gameState), 1, in);
-		return 1;
-	}
-	else {
-		showNotFoundErr(displayBuff, "DATA", "save/game.dat");
-		return 0;
-	}
+int loadDecryptedGameState(const char* fileName, ALLEGRO_DISPLAY* displayBuff, gameState* stateBuffer, const char* key) {
+    FILE* in = fopen(fileName, "rb");
+    if (!in || feof(in)) {
+        showError(displayBuff, "The data cannot be loaded!", "The file cannot be opened. Maybe corrupted or opened or doesn't have enough permissions!");
+        return 0;
+    }
+
+    // Read the IV from the file
+    unsigned char iv[AES_BLOCK_SIZE];
+    if (fread(iv, 1, AES_BLOCK_SIZE, in) != AES_BLOCK_SIZE) {
+        showError(displayBuff, "Error reading IV from the file", "Failed to read Initialization Vector.");
+        fclose(in);
+        return 0;
+    }
+
+    // Get the size of the encrypted data
+    fseek(in, 0, SEEK_END);
+    size_t encryptedLength = ftell(in) - AES_BLOCK_SIZE;
+    fseek(in, AES_BLOCK_SIZE, SEEK_SET);
+
+    // Read the encrypted data from the file
+    unsigned char* encryptedData = (unsigned char*)malloc(encryptedLength);
+    if (encryptedData == NULL) {
+        showError(displayBuff, "Memory allocation error", "Failed to allocate memory for encrypted data.");
+        fclose(in);
+        return 0;
+    }
+
+    if (fread(encryptedData, 1, encryptedLength, in) != encryptedLength) {
+        showError(displayBuff, "Error reading encrypted data from the file", "Failed to read encrypted data.");
+        fclose(in);
+        free(encryptedData);
+        return 0;
+    }
+
+    // Decrypt the data
+    unsigned char* decryptedData;
+    size_t decryptedLength;
+    decryptData(encryptedData, encryptedLength, key, iv, &decryptedData, &decryptedLength);
+
+    // Copy the decrypted data to the state buffer
+    memcpy(stateBuffer, decryptedData, sizeof(gameState));
+
+    // Free dynamically allocated memory
+    free(encryptedData);
+    free(decryptedData);
+
+    // Close the file
+    fclose(in);
+
+    return 1;
 }
 
 void enableGameState(gameState* stateBuffer) {

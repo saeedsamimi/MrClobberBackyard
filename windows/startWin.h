@@ -231,7 +231,7 @@ int menuClickHandler(GBUTTON* btns,ALLEGRO_MOUSE_EVENT mouseE,int rectCount,ALLE
 		}
 		else if (i == 1 && inRectangle(btns + i, mouseE.x, mouseE.y)) {
 			gameState temp;
-			if (loadGameState("./save/game.dat", Display, &temp)) {
+			if (loadDecryptedGameState("./save/game.dat", Display, &temp,ENCRYPTION_KEY)) {
 				enableGameState(&temp);
 				al_destroy_display(Display);
 				al_destroy_font(Font);

@@ -45,6 +45,7 @@ ALLEGRO_COLOR COLOR1, COLOR2, COLOR3, COLOR4,WHITE,BLACK;
 #define FISH_COUNT 10
 #define TRAP_COUNT 8
 #define ROUNDS_NUMBER 15
+#define ENCRYPTION_KEY "ihatefuckingfumU"
  
 typedef struct {
 	unsigned short int x, y;

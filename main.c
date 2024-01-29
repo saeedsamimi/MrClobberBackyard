@@ -678,7 +678,7 @@ void closeApp() {
 		gameState temp;
 		generateGameSate(&temp);
 		// if game saved successfully . then please close the application and exit
-		if (!saveGameState("./save/game.dat", &temp, display))
+		if (!saveEncryptedGameState("./save/game.dat", &temp, display,ENCRYPTION_KEY))
 		{
 			freeCache();
 			al_destroy_font(Font);
