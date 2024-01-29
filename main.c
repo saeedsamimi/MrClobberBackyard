@@ -53,7 +53,7 @@ void finishBoard();
 void moveCurrentPlayerOnBoard(int, int);
 void GUI();
 void closeApp();
-
+//int currentPlayer, indicateSort[4] = { 0 }, currentIndex = 0, currentRound = 1;
 char diceRolled = 0;
 ALLEGRO_FONT* Font;
 ALLEGRO_DISPLAY* display;
@@ -129,6 +129,7 @@ void GUI() {
 // runs the main loop such as manage moving characters and moving items and choosing best player ...
 void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 	//------- Check For Game Roundes -------
+	al_flip_display();
 	while (1) {
 		if (currentRound > ROUNDS_NUMBER) finishBoard();
 		// if the dice not rolled please roll it!
@@ -154,6 +155,7 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 		}
 		printDiceHint(0);
 		clearMouses(); //correct call
+		al_flip_display();
 		if (ev->type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 			closeApp();
 		if (ev->type == ALLEGRO_EVENT_KEY_UP) {
@@ -193,13 +195,17 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 				break;
 			}
 		}
+		al_flip_display();
 		// ---- REMOVE THIS SECTION ----
 		clearDogs();
+		printDogs();
+		clearCats();
 		printCats();
+		clearMouses();
+		printMouses();
+		clearFishes();
 		indicatePlayer();
 		printChocolatesAndFishes();
-		printDogs();
-		printMouses();
 		printScoreBoard();
 		//------------------------------
 		al_flip_display();
@@ -209,9 +215,6 @@ void gameLoop(ALLEGRO_EVENT_QUEUE* ev_queue, ALLEGRO_EVENT* ev) {
 // -- init -- allegro display settings
 char initializeDisplay() {
 	if (!al_init()) return INIT_DISPLAY_ALLEGRO_ERR;
-	// set anti-aliazing for app
-	al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
-	al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
 	display = al_create_display((SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE + SCORE_BOARD_WIDTH, (SQUARE_SIZE + 2 * MARGIN) * BOARD_SIZE);
 	if (!display) {
 		showError(NULL, "Create display failed", "Please try again!");
@@ -285,7 +288,7 @@ char initializeDisplay() {
 		showNotFoundErr(display, "Image", "src/cat.png");
 		return INIT_DISPLAY_IMG_NOT_FOUND;
 	}
-	al_set_window_position(display, 50, 50);
+	al_set_window_position(display, 300, 40);
 	al_set_display_icon(display, img);
 	return INIT_DISPLAY_SUCCESS;
 }
@@ -338,8 +341,6 @@ void printScoreBoard() {
 					x + 5, y + indicateSort[j] * h + 5, h * .9);
 				break;
 			case 1:
-				// fixing bug
-				if (cats[indicateSort[j]].defencePoint > 65000) cats[indicateSort[j]].defencePoint = 0;
 				al_draw_textf(Font, WHITE, x + (1.5) * w, y + (indicateSort[j] + .5) * h - 15,
 					ALLEGRO_ALIGN_CENTER, "%d", cats[indicateSort[j]].defencePoint);
 				break;
@@ -514,9 +515,11 @@ void printCats() {
 
 // this complicated function allows you to move cats if that can move there
 void moveCurrentPlayerOnBoard(int newX, int newY){
+	mice_map();
 	if(cats[currentPlayer].freeze >=0) {
 		clearCats();
 		clearMouses();
+		al_flip_display();
 		eat(newX, newY, currentPlayer);
 		fight(newX,newY,0,currentPlayer);
 		trap(newX,newY,currentPlayer);

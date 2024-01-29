@@ -5,6 +5,7 @@
 #include <allegro5/allegro_native_dialog.h>
 #include "save/fileManager.h"
 #include <stdio.h>
+#include "map.h"
 
 // for test and debug board in the console environment
 void __testMap() {
@@ -16,6 +17,19 @@ void __testMap() {
     fprintf(outFile, "\n");
   }
   fclose(outFile);
+}
+
+
+void mice_map() {
+  int mice_count = 0;
+  for(int i=0;i<BOARD_SIZE;i++) {
+    for(int j=0;j<BOARD_SIZE;j++) {
+      printf("%3d ",map[i][j]);
+      if(hasFlag(map[i][j],FLAG_MOUSE)) mice_count++;
+    }
+    printf("\n");
+  }
+  printf("MICE COUNT : %d\n\n\n",mice_count);
 }
 
 void __testLoadState(ALLEGRO_TEXTLOG *log,gameState* _state) {
