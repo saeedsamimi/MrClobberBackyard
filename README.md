@@ -28,9 +28,11 @@
 
 ## Winning
 1. Most mouse points after 15 rounds win. Ties broken by a higher total power/defense point.
-2. Final scores displayed and saved to a text file named "./save/state.txt".
+2. Final scores displayed and saved to a text file named `./save/state.txt`.
 3. You can save and resume the game as well as you want. The game data will be encrypted and saved in "./save/game.dat".
 
+## Online Storage
+- You can save your maps on server and use them on everywhere. You need to run fill your credentials in `networking/profile.conf` and then run online_map Program.
 ---
 
 ## Team:
