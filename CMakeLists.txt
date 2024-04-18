@@ -45,3 +45,8 @@ target_link_libraries(MrClobberBackyard
 )
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src DESTINATION .)
+
+set_target_properties(MrClobberBackyard
+    PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE)
