@@ -2,10 +2,7 @@ name: Windows-CI
 
 on: 
     push:
-        tags:
-          - 'v*'
-
-permissions: read-all
+        branches: ["main"]
 
 jobs:
     build: 
@@ -34,17 +31,6 @@ jobs:
               with: 
                 configurePreset: 'ninja-configure'
                 buildPreset: 'ninja-build-release'
-            
-            - name: Create Release
-              id: create_release
-              uses: actions/create-release@v1
-              env: 
-                GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-              with: 
-                tag_name: ${{github.ref}}
-                release_name: Release ${{github.ref}}
-                draft: false
-                prerelease: true
 
             - name: Zip Files
               run: |
@@ -53,13 +39,9 @@ jobs:
                           cmake_install.cmake CMakeCache.txt compile_commands.json \
                           .cmake/* CMakeFiles/* 
 
-            - name: Upload Release Asset
-              id: upload-release-asset 
-              uses: actions/upload-release-asset@v1
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                upload_url: ${{ steps.create_release.outputs.upload_url }}
-                asset_path: build/build.zip
-                asset_name: ${{matrix.os}}-version-${{github.ref}}.zip
-                asset_content_type: application/zip
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with: 
+                name: ${{matrix.os}}-release
+                path: build/build.zip
+                if-no-files-found: 'error'
