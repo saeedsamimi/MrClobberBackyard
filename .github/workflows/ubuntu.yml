@@ -33,6 +33,11 @@ jobs:
               with:
                 vcpkgJsonGlob: 'vcpkg.json'
 
+            - name: Run cmake for build the program
+              run: |
+                cmake . --preset='ninja-configure'
+                cmake . --build --preset='ninja-build-release'
+
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
               with: 
