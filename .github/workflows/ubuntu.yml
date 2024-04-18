@@ -36,7 +36,7 @@ jobs:
             - name: Run cmake for build the program
               run: |
                 cmake . --preset='ninja-configure'
-                cmake . --preset='ninja-build-release'
+                cmake --build . --preset='ninja-build-release'
 
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
