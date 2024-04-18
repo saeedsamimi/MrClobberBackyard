@@ -18,8 +18,8 @@ jobs:
             - name: Install basics
               run: |
                sudo apt update -y
-               sudo apt install git cmake build-essential linux-libc-dev
-               sudo apt install libssl-dev curl
+               sudo apt install -y git cmake build-essential linux-libc-dev ninja-build
+               sudo apt install -y libssl-dev curl
             
             - name: Install Allegro dependencies
               run: >
@@ -36,7 +36,7 @@ jobs:
             - name: Run cmake for build the program
               run: |
                 cmake . --preset='ninja-configure'
-                cmake . --build --preset='ninja-build-release'
+                cmake . --build --preset='ninja-build-release' -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_C_COMPILER=/usr/bin/gcc
 
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
