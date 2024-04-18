@@ -1,5 +1,10 @@
 {
-    "version": 2,
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 29,
+        "patch": 0
+    },
     "configurePresets": [
         {
             "name": "ninja-configure",
