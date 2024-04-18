@@ -14,25 +14,24 @@ jobs:
               uses: actions/checkout@v4.1.1
               with: 
                 submodules: true
-          
-            - name: Install CMake and Ninja
-              uses: lukka/get-cmake@latest
             
-            - name: install dependencies
+            - name: Install basics
               run: |
-               sudo apt update
-               sudo apt install linux-libc-dev              
-
-            - name: run Vcpkg            
-              uses: lukka/run-vcpkg@v11.5
-              with: 
-                vcpkgJsonGlob: 'vcpkg.json'
+               sudo apt update -y
+               sudo apt install git cmake build-essential linux-libc-dev
+               sudo apt install libssl-dev curl
             
-            - name: Run cmake and build with cmake
-              uses: lukka/run-cmake@v10.7
-              with: 
-                configurePreset: 'ninja-configure'
-                buildPreset: 'ninja-build-release'
+            - name: Install Allegro dependencies
+              run: >
+               sudo apt install -y libdumb1-dev libflac-dev libfreetype6-dev libgl1-mesa-dev 
+               libglu1-mesa-dev libgtk-3-dev libjpeg-dev libopenal-dev libphysfs-dev libpng-dev
+               libpulse-dev libtheora-dev libvorbis-dev libwebp-dev libxext-dev libxxf86vm-dev 
+               libxrandr-dev libxinerama-dev libxpm-dev libopusfile-dev
+
+            - name: Run Vcpkg for installing Allegro5
+              uses: lukka/run-vcpkg@v11.5
+              with:
+                vcpkgJsonGlob: 'vcpkg.json'
 
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
