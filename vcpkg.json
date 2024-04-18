@@ -1,0 +1,9 @@
+{
+  "name": "mr-clobber-backyard",
+  "version": "1.0.0",
+  "dependencies": [
+    "curl",
+    "openssl",
+    "allegro5"
+  ]
+}

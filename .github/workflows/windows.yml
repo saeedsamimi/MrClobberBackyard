@@ -1,0 +1,32 @@
+name: Windows-CI
+
+on: 
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+    
+    workflow_dispatch:
+
+jobs:
+    build: 
+        runs-on: windows-latest
+
+        steps:
+            - name: Checkout Branch main
+              uses: actions/checkout@v4.1.1
+            
+            - name: run-vcpkg              
+              uses: lukka/run-vcpkg@v11.5
+          
+            - name: Install CMake and Ninja
+              uses: lukka/get-cmake@latest
+            
+            - name: Run cmake and build with cmake
+              uses: lukka/run-cmake@v10.7
+              with: 
+                configurePreset: 'ninja-configure'
+                buildPreset: 'ninja-build-release'
+            
+            - name: List files in the build directory
+              run: ls build
