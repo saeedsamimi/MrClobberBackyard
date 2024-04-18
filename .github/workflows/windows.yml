@@ -18,7 +18,7 @@ jobs:
             - name: Install CMake and Ninja
               uses: lukka/get-cmake@latest
             
-            - name: run-vcpkg              
+            - name: run Vcpkg            
               uses: lukka/run-vcpkg@v11.5
               with: 
                 vcpkgJsonGlob: 'vcpkg.json'
@@ -30,15 +30,12 @@ jobs:
                 buildPreset: 'ninja-build-release'
 
             - name: Zip Files
-              continue-on-error: true
               run: |
                 cd build
-                7z a -tzip build.zip .* -r -x .ninja_log .ninja_deps build.ninja log.txt \
-                          cmake_install.cmake CMakeCache.txt compile_commands.json \
-                          .cmake/* CMakeFiles/*
+                winget install --id 7zip.7zip
+                7z a -tzip build.zip .* -r -x .ninja_log .ninja_deps build.ninja log.txt cmake_install.cmake CMakeCache.txt compile_commands.json .cmake/* CMakeFiles/*
 
             - name: Upload artifacts
-              continue-on-error: true
               uses: actions/upload-artifact@v4
               with: 
                 name: windows-release
