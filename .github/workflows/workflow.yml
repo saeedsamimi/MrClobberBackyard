@@ -33,13 +33,15 @@ jobs:
                 buildPreset: 'ninja-build-release'
 
             - name: Zip Files
+              continue-on-error: true
               run: |
                 cd build
-                zip -u -r build.zip . -x .ninja_log .ninja_deps build.ninja log.txt \
+                7z a -tzip build.zip .* -r -x .ninja_log .ninja_deps build.ninja log.txt \
                           cmake_install.cmake CMakeCache.txt compile_commands.json \
-                          .cmake/* CMakeFiles/* 
+                          .cmake/* CMakeFiles/*
 
             - name: Upload artifacts
+              continue-on-error: true
               uses: actions/upload-artifact@v4
               with: 
                 name: ${{matrix.os}}-release
